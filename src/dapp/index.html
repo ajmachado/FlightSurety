@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>FlightSurety</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <a class="navbar-brand" href="#">FlightSurety</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <label></label>
+    </nav>
+
+    <main class="container">
+        <div id="display-operational-status" class="top-20"></div>
+        <div id="display-wrapper" class="top-20">
+            <h2>Airline Section</h2>
+        </div>
+        <div class="row top-20"><h4>Fund Airline</h4></div>
+        <div id="display-wrapper-funding-status" class="top-20"></div>
+        <div id="display-airline" class="top-20">
+            <div class="top-20">
+                <label class="form">Airline</label><select id="airline1"></select>&nbsp;&nbsp;
+                <div id="airlineInfo2"></div>
+            </div>
+            <div class="row top-20">
+                <label class="form">Amount (ETH)</label><input type="text" id="fundAmount" maxlength="2" size="4"/>&nbsp;&nbsp;
+                <btn class="btn btn-primary" id="fund">Fund Airline</btn>
+            </div>
+        </div>
+        <div id="display-wrapper" class="top-20"><br><br></div>
+        <div id="display-wrapper-flight-status" class="top-20">
+            <h2>Flight Status</h2>
+        </div>
+        <div class="top-20">
+            <label class="form">Flight</label> 
+            <select id="flights1"></select>&nbsp;&nbsp;
+            <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+        </div>
+        <div id="display-wrapper" class="top-20"><br><br></div>
+        <div id="display-wrapper" class="top-20">
+                <h2>Passenger Section</h2>
+        </div>
+        <div class="row top-20"><h4>Purchase Flight Insurance</h4></div>
+        <div id="display-wrapper-insurance-status" class="top-20"></div>
+        <div class="top-20">
+            <div class="top-20">
+                <label class="form">Flight</label><select id="flights2"></select>&nbsp;&nbsp;
+                <div id="flightInfo2"></div>
+            </div>
+            <div class="row top-20">
+                <label class="form">Amount (ETH)</label><input type="text" id="insurance" maxlength="4" size="4"/>&nbsp;&nbsp;
+                <btn class="btn btn-primary" id="purchase">Purchase Insurance</btn>
+            </div>
+        </div>
+        <div id="display-wrapper" class="top-20"><br><br></div>
+        <div class="row top-20"><h4>Claim Flight Insurance</h4></div>
+        <div id="display-claim-insurance" class="top-20"></div>
+
+    </main>
+    
+</body>
+
+</html>
