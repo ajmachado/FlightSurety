@@ -14,7 +14,7 @@ export default class Contract {
                 return(window.ethereum);
             } else { 
                 //return window.web3.currentProvider;
-             return(new Web3.providers.HttpProvider("http://localhost:9545"));
+             return(new Web3.providers.HttpProvider("http://localhost:8545"));
             }
         };
         let self = this
@@ -24,8 +24,7 @@ export default class Contract {
             //self.web3 = new Web3(provider);
             //console.log(provider);
             
-            self.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:9545"));
-            //self.web3 = new Web3(new Web3.providers.WebsocketProvider(config.url.replace('http', 'ws')));
+            self.web3 = new Web3(new Web3.providers.WebsocketProvider("ws://localhost:8545"));
             self.web3Window = new Web3(provider);
             self.flightSuretyApp = new self.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
             self.flightSuretyData = new self.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
@@ -41,8 +40,7 @@ export default class Contract {
     initialize(callback, config) {
         this.web3.eth.getAccounts((error, accts) => {
             this.owner = accts[0];
-            this.passenger = accts[9];
-
+            
             this.web3Window.eth.getAccounts((error, accts) => {
                 this.ownerWindow = accts[0];
             });
@@ -58,30 +56,45 @@ export default class Contract {
             let time = 0;
 
             while(this.airlines.length < 5) {
-                flight.push(accts[counter]);
-                flight.push(tempFlight[counter - 1]);
+                //Create Flight array
+                flight.push(accts[counter]); //airline account
+                flight.push(tempFlight[counter - 1]); //flight number
                 time = Math.floor((Date.now() + (43200 * counter))/ 1000);
-                flight.push(time);
-                flight.push(tempFlightTime[counter - 1]);
-                flight.push(tempFlightOrigin[counter - 1]);
-                flight.push(tempFlightDest[counter - 1]);
-                flight.push(tempAirline[counter - 1]);
-                airline.push(accts[counter]);
-                airline.push(tempAirline[counter -1]);
+                flight.push(time); //timestamp
+                flight.push(tempFlightTime[counter - 1]); //time
+                flight.push(tempFlightOrigin[counter - 1]); //origin
+                flight.push(tempFlightDest[counter - 1]); //destination
+                flight.push(tempAirline[counter - 1]); //airline name
+
+                //Create airlines array
+                airline.push(accts[counter]); //account number
+                airline.push(tempAirline[counter -1]); //airline name
+                if(counter == 1)
+                    airline.push(true);
+                else
+                    airline.push(false); //funding status
+
                 this.airlines.push(airline);
                 this.flights.push(flight);
+
+                //reset arrays
                 flight = [];
                 airline = [];
                 counter++;
             }
                       
-
-            while(this.passengers.length < 5) {
+            //Get accounts for passengers
+            while(this.passengers.length < 4) {
                 this.passengers.push(accts[counter++]);
             }
+            
+            //Set authorize caller for the data app
             this.authorizeCaller(config.appAddress); //Authorize call for the data contract
+
+            //register the airlines and flights
             this.registerAirlines((error, result) => { }); //Registers all airlines
             this.registerFlights((error, result) => { }); //Register 5 flights to pre fill flight dropdown
+
             callback();
         });
     }
@@ -90,14 +103,28 @@ export default class Contract {
         let self = this;
         self.flightSuretyData.methods
             .authorizeCaller(address)
-            .call({ from: self.owner}, callback);
+            .call({ from: self.owner}, (error,result) => {
+                if(error){
+                    console.log(error);
+                }else {
+                    //console.log(result);
+                    callback;
+                }
+            });
     }
 
     isOperational(callback) {
        let self = this;
        self.flightSuretyApp.methods
             .isOperational()
-            .call({ from: self.owner}, callback);
+            .call({ from: self.owner}, (error,result) => {
+                if(error){
+                    console.log(error);
+                }else {
+                    console.log(result);
+                    callback(result);
+                }
+            });
     }
 
     registerAirlines(callback) {
@@ -125,22 +152,28 @@ export default class Contract {
         }
     }
 
-    fundAirline(airline, amount, callback){
+    async fundAirline(airline, amount, callback){
         let self = this;
         let sendAmt = self.web3.utils.toWei(amount, "ether").toString();
-        
-        self.flightSuretyAppWindow.methods
-            .fund()
-            .send({ from: self.ownerWindow, value: sendAmt}, (error, result) => {
+        console.log(airline);
+                
+        await self.flightSuretyAppWindow.methods
+            .fund(airline)
+            .send({ from: self.ownerWindow, value: sendAmt }, (error, result) => {
                 if(error) {
                     console.log(error);
                 } else {
+                    
+                    for(var i = 0; i < this.airlines.length; i++){
+                        if(self.airlines[i][0] == airline)
+                        self.airlines[i][2] = true;
+                    }
                     callback(result);
                 }
-            });
+            }); 
     }
     
-    insurePassenger(flight, amount, callback) {
+    async insurePassenger(flight, amount, callback) {
         let self = this;
         let tempFlight;
         
@@ -151,13 +184,11 @@ export default class Contract {
                 break;
             }
         }
-        console.log (tempFlight);
-        console.log (self.ownerWindow);
-        console.log(self.web3.utils.toWei(amount, "ether"));
+
         let sendAmt = self.web3.utils.toWei(amount, "ether").toString();
-        console.log(sendAmt);
+        
         self.flightSuretyAppWindow.methods
-            .insurePassenger(tempFlight[1], tempFlight[2], tempFlight[0])
+            .insurePassenger(tempFlight[1], tempFlight[2], tempFlight[0], this.passengers[0])
             .send({ from: self.ownerWindow, value: sendAmt}, (error, result) => {
                 if(error) {
                   console.log(error);
@@ -167,18 +198,53 @@ export default class Contract {
             });
     }
 
-    fetchFlightStatus(flight, callback) {
+    async fetchFlightStatus(flight, callback) {
         let self = this;
+        let airline;
+        self.flights.forEach(flt => {
+            if(flt[1] == flight){
+                airline = flt[0];
+                
+            }
+        });
         let payload = {
-            airline: self.airlines[0][0],
+            airline: airline,
             flight: flight,
             timestamp: Math.floor(Date.now() / 1000)
         } 
-        self.flightSuretyApp.methods
+        await self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({ from: self.owner}, (error, result) => {
+                console.log(result);
                 callback(error, payload);
             });
+    }
+
+    async flightStatusInfo(callback) {
+        let self = this;
+        await self.flightSuretyApp.events.FlightStatusInfo({}, function(error, event) {
+            if(error) {
+                console.log(error);
+            } else {
+                callback(event.returnValues);
+            }
+        })
+    }
+
+    async getInsuranceInformation(passenger, callback){
+        let self = this
+        let insuranceInfo = [];
+        let amt;
+
+        for(var i= 0; i< self.flights.length; i++){
+            amt = await self.flightSuretyApp.methods
+                .getFlightsInsured(passenger, self.flights[i][1])
+                .send({from: this.owner});
+            if(amt > 0){
+                insuranceInfo.push([self.flights[i][1], amt]);
+            }
+        }
+        callback(insuranceInfo);
     }
 
     

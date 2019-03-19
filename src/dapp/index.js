@@ -14,14 +14,26 @@ import './flightsurety.css';
             displayOperStatus('Operational Status', '' , [ { label: 'Operational Status', error: error, value: result} ]);
         });
     
-        //Pre fill airlines dropdown
+        //Pre fill airlines dropdown with airlines that are not yet funded
         populateSelect("airline", contract.airlines, 1);
+
         //Pre fill the flights dropdown
         populateSelect("flights", contract.flights, 1);
         populateSelect("flights", contract.flights, 2);
-        flightChange('flights2', contract.flights);
-        //getInsuranceStatus()
+        populateSelect("flights", contract.flights, 3);
+        flightChange('flights', 2, contract.flights);
+        flightChange('flights', 3, contract.flights);
 
+        //Get Insurance Information for passenger
+        /* contract.getInsuranceInformation(contract.passengers[0], (error, result) => {
+            if(!error){
+                let insuranceInfo = result;
+                fillInsuranceInfo('Insurance Information for:', contract.passengers[0], insuranceInfo);
+            }else{
+                console.log(error);
+            }
+        }); */
+        
         DOM.elid('fund').addEventListener('click', () => {
             let airline = DOM.elid('airline1').value;
             let amount = DOM.elid('fundAmount').value;
@@ -37,11 +49,15 @@ import './flightsurety.css';
         })
 
         DOM.elid('flights1').addEventListener('change', () => {
-            flightChange('flights1', contract.flights);
+            flightChange('flights', 1, contract.flights);
         })
 
         DOM.elid('flights2').addEventListener('change', () => {
-            flightChange('flights2', contract.flights);
+            flightChange('flights', 2, contract.flights);
+        })
+
+        DOM.elid('flights3').addEventListener('change', () => {
+            flightChange('flights', 3, contract.flights);
         })
 
         // User-submitted transaction. Check Flight Status
@@ -49,8 +65,28 @@ import './flightsurety.css';
             let flight = DOM.elid('flights1').value;
             // Write transaction
             contract.fetchFlightStatus(flight, (error, result) => {
-                displayFlightStatus('Oracles', 'Trigger oracles', [ { label: 'Flight Status : ', error: error, value: result.flight + ' ' + result.timestamp} ]);
+                displayFlightStatus('display-wrapper-flight-status','Oracles', 'Trigger oracles', 0, [ { label: 'Flight Status : ', error: error, value: result.flight + ' ' + result.timestamp} ]);
             });
+        })
+
+        // User-submitted transaction. Check Flight Status
+        DOM.elid('flight-status').addEventListener('click', () => {
+            let flight = DOM.elid('flights3').value;
+            // Write transaction
+            let flightStatus = 0;
+            contract.fetchFlightStatus(flight, (error, result) => {
+                if(!error){
+                    contract.flightStatusInfo(result2 => {
+                            flightStatus = result2.status;
+                            console.log(flightStatus);
+                            //contract.insuranceBalance(insuranceBalanceCallback);
+                    });
+                }
+                console.log(error);
+                displayFlightStatus('flightStatusInfo','Flight Status', '', flightStatus, [ { label: 'Flight Status : ', error: error, value: result.flight + ' ' + result.timestamp} ]);
+            });
+
+           
         })
 
         DOM.elid('purchase').addEventListener('click', () => {
@@ -75,12 +111,12 @@ import './flightsurety.css';
 function populateSelect(type, selectOpts, el){
     let select = DOM.elid(type + el);
     let index = type == 'airline' ? 0: 1;
+    selectOpts.forEach(opt => {
+        if((type  == 'airline' && opt[2] == false) || type == 'flights'){
+            select.appendChild(DOM.option({value: opt[index]}, opt[1] ));
+        }
+    });
     
-    for(var i= 0; i < selectOpts.length; i++)
-    {
-        select.appendChild(DOM.option({value: selectOpts[i][index]}, selectOpts[i][1] ));
-    }
-
 }
 
 function displayOperStatus(title, description, results) {
@@ -97,9 +133,11 @@ function displayOperStatus(title, description, results) {
     displayDiv.append(section);
 }
 
-function flightChange(el, flights){
+function flightChange(el, n, flights){
+    el = el + n
     let flight = DOM.elid(el).value;
     let flightArr;
+    
     for (var i = 0; i < flights.length; i++){
         if(flights[i][1] == flight){
             flightArr = flights[i];
@@ -130,21 +168,47 @@ function displayFund(title, results) {
     results.map((result) => {
         let row = section.appendChild(DOM.div({className:'row'}));
         row.appendChild(DOM.div({className: 'col-sm-4 field'}, result.label));
-        row.appendChild(DOM.div({className: 'col-sm-8 field-value'}, result.error ? String(result.error) : String(result.airline)));
+        console.log(result);
+        row.appendChild(DOM.div({className: 'col-sm-8 field-value'}, result.error ? String(result.error) : ("Funded : TX: " + String(result.airline))));
         section.appendChild(row);
     })
     displayDiv.append(section);
 }
 
-function displayFlightStatus(title, description, results) {
-    let displayDiv = DOM.elid("display-wrapper-flight-status");
+function displayFlightStatus(divID, title, description, status, results) {
+    let displayDiv = DOM.elid(divID);
     let section = DOM.section();
-    section.appendChild(DOM.h4(title));
+    //section.appendChild(DOM.h4(title));
     section.appendChild(DOM.h5(description));
     results.map((result) => {
         let row = section.appendChild(DOM.div({className:'row'}));
         row.appendChild(DOM.div({className: 'col-sm-4 field'}, result.label));
-        row.appendChild(DOM.div({className: 'col-sm-8 field-value'}, result.error ? String(result.error) : String(result.value)));
+        let displayStr = String(result.value);
+        
+
+        if(status != 0){
+            switch(status){
+                case 0 :
+                    displayStr += " : Unknown";
+                    break;
+                case 10 :
+                    displayStr += " : On Time";
+                    break;
+                case 20 :
+                    displayStr += " : Late due to Airline";
+                    break;
+                case 30 :
+                    displayStr += " : Late due to weather";
+                    break;
+                case 40 :
+                    displayStr += " : Late due to technical problems";
+                    break;
+                case 50 :
+                    displayStr += " : Late due to other reasons";
+                    break;
+            }
+        }
+        row.appendChild(DOM.div({className: 'col-sm-8 field-value'}, result.error ? String(result.error) : displayStr));
         section.appendChild(row);
     })
     displayDiv.append(section);
@@ -163,6 +227,19 @@ function displayInsurance(title, results) {
     })
     displayDiv.append(section);
 
+}
+
+function fillInsuranceInfo(title, passenger, insuranceInfo){
+    let displayDiv = DOM.elid("display-wrapper-insurance-status");
+    let section = DOM.section();
+    title = title + " " + passenger;
+    section.appendChild(DOM.h5(title));
+    insuranceInfo.forEach(flight => {
+        section.appendChild(DOM.label(flight[0] + " : "));
+        section.appendChild(DOM.label(flight[1] + " ETH"));
+    });
+    
+    displayDiv.append(section);
 }
 
 

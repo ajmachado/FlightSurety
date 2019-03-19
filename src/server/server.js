@@ -9,12 +9,84 @@ let web3 = new Web3(new Web3.providers.WebsocketProvider(config.url.replace('htt
 web3.eth.defaultAccount = web3.eth.accounts[0];
 let flightSuretyApp = new web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
 
+let registeredOracles = []
+
+//Get Oracle accounts
+ web3.eth.getAccounts( (error, accounts) => {
+  //Get registration fee from app
+  flightSuretyApp.methods
+    .REGISTRATION_FEE()
+    .call({ from: accounts[0]}, (error, result) => {
+      if(error) {
+        console.log(error);
+
+      } else {
+        console.log(result);
+      }
+    });
+  /* flightSuretyApp.methods.REGISTRATION_FEE().call({ from: accounts[0] },(error, result) => {
+    console.log(accounts);
+    if(error){
+      console.log(error);
+    }else{
+    //Register 20 oracles
+    
+      for(var i = 10; i < 11; i++){
+      console.log(accounts[i]);
+      flightSuretyApp.methods
+        .registerOracle()
+        .send({ from: accounts[i], value: result}, (error, result2) => {
+          if(error){
+            console.log(error);
+          }else{
+            /* flightSuretyApp.methods
+            .getMyIndexes()
+            .call({ from: accounts[i]}, (error, result) => {
+              if(error){
+                console.log(error);
+              }else{
+                let oracle = [account[i], result];
+                registeredOracles.push(oracle);
+                console.log ("Oracle : " + oracle);
+              }
+            }); 
+          }
+        });
+      }
+    }  */
+  //});
+  
+  
+   
+
+}); 
 
 flightSuretyApp.events.OracleRequest({
     fromBlock: 0
   }, function (error, event) {
-    if (error) console.log(error)
-    console.log(event)
+    if (error) {
+      console.log(error);
+    }else{
+      console.log(event);
+      /*  var statusCodes = [0, 10, 20, 30, 40, 50];
+      var statusCode = statusCodes[Math.floor(Math.random() * statusCodes.length)];
+
+      let indexes;
+      for(var i = 0; i < registeredOracles.length; i++) {
+        indexes  = registeredOracles[i][1]
+        if(indexes.indexOf(event.index) > -1) {
+          
+          // Submit Oracle Response
+          flightSuretyApp.methods
+            .submitOracleResponse(event.index, event.airline, event.flight, event.timestamp, statusCode)
+            .send({ from: registeredOracles[i] }, (error, result) => {
+              if(error) {
+                console.log(error);
+              } 
+            });
+        } 
+      } */
+    }
 });
 
 const app = express();

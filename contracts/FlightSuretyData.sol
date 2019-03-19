@@ -276,6 +276,7 @@ contract FlightSuretyData {
             string memory flight,
             uint256 time,
             address passenger,
+            address sender,
             uint256 amount                    
         )
         public
@@ -285,7 +286,7 @@ contract FlightSuretyData {
         //Check if flight time is less than current time. Flight already departed
         //require(time > now, "Passengers cannot purchase insurance on departed or landed flights");
         //contractOwner.transfer(amount);
-        contractBalance.add(amount);
+        
         string[] memory _flights = new string[](5);
         bool[] memory paid = new bool[](5);
         uint256[] memory insurance = new uint[](5);
@@ -308,10 +309,9 @@ contract FlightSuretyData {
             _flights[0] = flight; //Set flight 
             InsuredPassengers[passenger] = Passenger({isInsured: true, isPaid: paid, insurancePaid: insurance, flights: _flights}); 
          }
-
+        contractBalance.add(amount);
         FlightPassengers[flight].push(passenger);
         FlightInsuredAmount[flight] = FlightInsuredAmount[flight].add(amount);  
-    
     }
 
     /**
@@ -380,14 +380,14 @@ contract FlightSuretyData {
     function fund
         (   
             uint256 fundAmt,
-            address _airline
+            address _airline,
+            address sender
         )
         public
         payable
         requireIsOperational
-        requireRegisteredAirline(_airline)
     {
-        require(isFunded(_airline) == false, "Airline is already funded");
+        //require(isFunded(_airline) == false, "Airline is already funded");
         RegisteredAirlines[_airline].isFunded = true;
         //contractOwner.transfer(fundAmt);
         contractBalance.add(fundAmt);
@@ -466,9 +466,7 @@ contract FlightSuretyData {
         external 
         payable 
     {
-        fund(msg.value, address(0));
+        fund(msg.value, address(0), msg.sender);
     }
-
-
 }
 

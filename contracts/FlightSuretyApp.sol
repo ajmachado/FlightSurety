@@ -229,11 +229,11 @@ contract FlightSuretyApp {
     *      resulting in insurance payouts, the contract should be self-sustaining
     *
     */   
-    function fund () external payable requireIsOperational
+    function fund (address airline) external payable requireIsOperational
     {
         require(msg.value == REGISTRATION_FEE_AIRLINES, "Not enough Ether to fund airline. Requires 10 ETH" );
-        flightSuretyData.fund(REGISTRATION_FEE_AIRLINES, msg.sender);
-        emit AirlineFunded(msg.sender);
+        flightSuretyData.fund(REGISTRATION_FEE_AIRLINES, airline, msg.sender);
+        emit AirlineFunded(airline);
     }
 
     
@@ -264,7 +264,8 @@ contract FlightSuretyApp {
         (
             string flight,
             uint256 time,
-            address airline
+            address airline,
+            address passenger
         )
     external
     payable
@@ -272,7 +273,7 @@ contract FlightSuretyApp {
     //requireIsFlightRegistered(airline, flight, time)
     {
         require(msg.value <= MAX_INSURANCE_PASSENGER, "Passengers can pay a max of 1 ETH");
-        flightSuretyData.buy(flight, time, msg.sender, msg.value);
+        flightSuretyData.buy(flight, time, passenger, msg.sender, msg.value);
         emit PassengerInsured();
     }
     
@@ -363,7 +364,6 @@ contract FlightSuretyApp {
 
     // Number of oracles that must respond for valid status
     uint256 private constant MIN_RESPONSES = 3;
-
 
     struct Oracle {
         bool isRegistered;
@@ -520,11 +520,11 @@ contract FlightSuretyApp {
 contract FlightSuretyData {
     function registerAirline (address _airline, address caller) external;
     function _getRegisteredAirlinesNum() external returns(uint number);
-    function fund (uint256 fundAmt, address _airline) public payable;
+    function fund (uint256 fundAmt, address _airline, address sender) public payable;
     function creditInsurees (string  flight) external;
     function isRegistered(address _airline) public returns(bool _reg);
     function isFunded(address _airline) public returns(bool _reg);
-    function buy(string  flight, uint256 time, address passenger, uint256 amount) public payable;
+    function buy(string  flight, uint256 time, address passenger, address sender, uint256 amount) public payable;
     function withdraw(address payee, uint amount) external payable;
     function getFlightsInsured(address passenger, string flight) external returns(uint amount);
     function getFlightAmountInsured(string flight) external view returns(uint amount) ;
