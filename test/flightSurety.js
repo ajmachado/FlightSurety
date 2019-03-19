@@ -117,7 +117,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     // ACT
     try {
-        await config.flightSuretyApp.fund({from: airline, value: config.weiLow.toNumber()});
+        await config.flightSuretyApp.fund(airline, {from: airline, value: config.weiLow.toNumber()});
     }
     catch(e) {
 
@@ -136,7 +136,7 @@ contract('Flight Surety Tests', async (accounts) => {
     const payment  = web3.toWei("10", "ether");
     // ACT
     try {
-        await config.flightSuretyApp.fund({from: airline, value: payment.toString()});
+        await config.flightSuretyApp.fund(airline, {from: airline, value: payment.toString()});
         //let contractBalance = await config.flightSuretyData.contractBalance.call();
     }
     catch(e) {
@@ -171,8 +171,8 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(result2, true, "Airline 4 cannot be registered.");
 
     try {
-        await config.flightSuretyApp.fund({from: airline3, value: payment.toString(), gasPrice: 0});
-        await config.flightSuretyApp.fund({from: airline4, value: payment.toString(), gasPrice: 0});
+        await config.flightSuretyApp.fund(airline3, {from: airline3, value: payment.toString(), gasPrice: 0});
+        await config.flightSuretyApp.fund(airline4, {from: airline4, value: payment.toString(), gasPrice: 0});
         //let contractBalance = await config.flightSuretyData.contractBalance.call();
     }
     catch(e) {
@@ -290,7 +290,7 @@ contract('Flight Surety Tests', async (accounts) => {
         
     // ACT
     try {
-        await config.flightSuretyApp.insurePassenger(flightNumber, time, airline, {from: passenger, value: payment.toString(), gasPrice: 0});
+        await config.flightSuretyApp.insurePassenger(flightNumber, time, airline, passenger, {from: passenger, value: payment.toString(), gasPrice: 0});
     }
     catch(e) {
 
@@ -315,7 +315,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let revert = false;
     // ACT
     try {
-        await config.flightSuretyApp.insurePassenger(flightNumber, time, airline, {from: passenger, value: payment.toString(), gasPrice: 0});
+        await config.flightSuretyApp.insurePassenger(flightNumber, time, airline, passenger, {from: passenger, value: payment.toString(), gasPrice: 0});
     }
     catch(e) {
         revert = true;
@@ -340,7 +340,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let revert = false;
     // ACT
     try {
-        await config.flightSuretyApp.insurePassenger(flightNumber, time, airline, {from: passenger, value: payment.toString(), gasPrice: 0});
+        await config.flightSuretyApp.insurePassenger(flightNumber, time, airline, passenger, {from: passenger, value: payment.toString(), gasPrice: 0});
     }
     catch(e) {
         revert = true;
