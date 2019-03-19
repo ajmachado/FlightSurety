@@ -8,32 +8,36 @@ contract('Flight Surety Tests', async (accounts) => {
   before('setup contract', async () => {
     config = await Test.Config(accounts);
     await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
-    
+       
   });
 
   /****************************************************************************************/
   /* Operations and Settings                                                              */
   /****************************************************************************************/
 
-  it(`(multiparty) has correct initial isOperational() value`, async function () {
+   it(`(multiparty) has correct initial isOperational() value`, async function () {
 
     // Get operating status
+    
     let status = await config.flightSuretyData.isOperational.call();
+    
     assert.equal(status, true, "Incorrect initial operating status value");
-
+    
   });
 
-  it(`(multiparty) can block access to setOperatingStatus() for non-Contract Owner account`, async function () {
+   it(`(multiparty) can block access to setOperatingStatus() for non-Contract Owner account`, async function () {
 
       // Ensure that access is denied for non-Contract Owner account
       let accessDenied = false;
+      
       try 
       {
-          await config.flightSuretyData.setOperatingStatus(false, { from: config.testAddresses[2] });
+          await config.flightSuretyData.setOperatingStatus(false, { from: accounts[2] });
       }
       catch(e) {
           accessDenied = true;
       }
+      
       assert.equal(accessDenied, true, "Access not restricted to Contract Owner");
             
   });
@@ -44,18 +48,19 @@ contract('Flight Surety Tests', async (accounts) => {
       let accessDenied = false;
       try 
       {
-          await config.flightSuretyData.setOperatingStatus(false, { from: config.firstAirline });
+          await config.flightSuretyData.setOperatingStatus(false, { from: config.owner });
       }
       catch(e) {
           accessDenied = true;
       }
       assert.equal(accessDenied, false, "Access not restricted to Contract Owner");
-      
+
+     
   });
 
   it(`(multiparty) can block access to functions using requireIsOperational when operating status is false`, async function () {
 
-      await config.flightSuretyData.setOperatingStatus(false, { from: config.firstAirline });
+      await config.flightSuretyData.setOperatingStatus(false, { from: config.owner });
         
       let reverted = false;
       try 
@@ -68,26 +73,32 @@ contract('Flight Surety Tests', async (accounts) => {
       assert.equal(reverted, true, "Access not blocked for requireIsOperational");      
 
       // Set it back for other tests to work
-      await config.flightSuretyData.setOperatingStatus(true);
-
+      reverted = false;
+      try {
+        await config.flightSuretyData.setOperatingStatus(true);
+      }catch(e) {
+        reverted = true;
+      }
+      assert.equal(reverted, false, "Reset operational status failed");
   });
 
   it('(airline) can register an Airline using registerAirline() if it is funded', async () => {
     
     // ARRANGE
     let newAirline = accounts[2];
-
+    let reverted = false;
     // ACT
     try {
         await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
     }
     catch(e) {
-
+      reverted = true;
     }
     let result = await config.flightSuretyData.isRegistered.call(newAirline); 
 
     // ASSERT
     assert.equal(result, true, "Airline should be able to register another airline if it has been funded");
+    assert.equal(reverted, false, "Airline should be able to register another airline if it has been funded");
 
   });
 
@@ -96,12 +107,13 @@ contract('Flight Surety Tests', async (accounts) => {
     // ARRANGE
     let newAirline = accounts[3];
 
+    let reverted = false;
     // ACT
     try {
         await config.flightSuretyApp.registerAirline(newAirline, {from: accounts[2]});
     }
     catch(e) {
-
+      reverted = true;
     }
     let result = await config.flightSuretyData.isRegistered.call(newAirline); 
 
@@ -110,43 +122,61 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
-  it('(airline) airline needs minimum 10 ETH to be funded. Use fund() function', async () => {
-    
-    // ARRANGE
-    let airline = accounts[2];
-
-    // ACT
-    try {
-        await config.flightSuretyApp.fund(airline, {from: airline, value: config.weiLow.toNumber()});
-    }
-    catch(e) {
-
-    }
-    let result = await config.flightSuretyData.isFunded.call(airline); 
-
-    // ASSERT
-    assert.equal(result, false, "Low funding. Requires 10 ETH.");
-
-  });
-
   it('(airline) airline is funded with 10 ETH. Use fund() function', async () => {
     
     // ARRANGE
     let airline = accounts[2];
     const payment  = web3.toWei("10", "ether");
+    
     // ACT
+    let revert = false;
     try {
-        await config.flightSuretyApp.fund(airline, {from: airline, value: payment.toString()});
-        //let contractBalance = await config.flightSuretyData.contractBalance.call();
+        await config.flightSuretyApp.fund(airline, {from: airline, value: config.weiMultiple.toNumber()});
     }
     catch(e) {
-
+      revert = true;
+      console.log(e);
     }
     let result = await config.flightSuretyData.isFunded.call(airline); 
     // ASSERT
     assert.equal(result, true, "Airline not funded.");
-
+    assert.equal(revert, false, "Airline not funded.");
   });
+
+  it('(airline) airline needs minimum 10 ETH to be funded. Use fund() function', async () => {
+    
+    // ARRANGE
+    let airline = accounts[3];
+    let reverted = false;
+    // ACT
+    try {
+        await config.flightSuretyApp.fund(airline, {from: airline, value: config.weiLow.toNumber()});
+    }
+    catch(e) {
+      //console.log(e);
+      reverted = true;
+    }
+    //let result = await config.flightSuretyData.isFunded.call(airline); 
+
+    // ASSERT
+    //assert.equal(result, false, "Low funding. Requires 10 ETH.");
+    assert.equal(reverted, true, "Low funding. Error.");
+  });
+
+  /*it('(airline) checking isFunded', async () => {
+    
+    // ARRANGE
+    let airline = accounts[2];
+    //const payment  = web3.toWei("10", "ether");
+    // ACT
+    let result = await config.flightSuretyData.isFunded.call(airline); 
+    
+    // ASSERT
+    assert.equal(result, false, "Airline not funded.");
+
+  }); */
+
+  
 
   it('(airline) Register and fund first 4 airlines without consensus', async () => {
     
@@ -350,5 +380,5 @@ contract('Flight Surety Tests', async (accounts) => {
     // ASSERT
     assert.equal(revert, true, "Passenger could not be insured");
 
-  });
+  }); 
 });
