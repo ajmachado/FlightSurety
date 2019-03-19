@@ -86,6 +86,7 @@ contract('Flight Surety Tests', async (accounts) => {
     
     // ARRANGE
     let newAirline = accounts[2];
+    
     let reverted = false;
     // ACT
     try {
@@ -126,16 +127,18 @@ contract('Flight Surety Tests', async (accounts) => {
     
     // ARRANGE
     let airline = accounts[2];
+    
     const payment  = web3.toWei("10", "ether");
+    //console.log(config.weiMultiple.toNumber());
     
     // ACT
     let revert = false;
     try {
-        await config.flightSuretyApp.fund(airline, {from: airline, value: config.weiMultiple.toNumber()});
+        await config.flightSuretyApp.fund(airline, {from: airline, value: payment.toString(), gasPrice:0});
     }
     catch(e) {
       revert = true;
-      console.log(e);
+      //console.log(e);
     }
     let result = await config.flightSuretyData.isFunded.call(airline); 
     // ASSERT
@@ -163,32 +166,18 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(reverted, true, "Low funding. Error.");
   });
 
-  /*it('(airline) checking isFunded', async () => {
+  it('(airline) Register first 4 airlines without consensus', async () => {
     
     // ARRANGE
     let airline = accounts[2];
-    //const payment  = web3.toWei("10", "ether");
-    // ACT
-    let result = await config.flightSuretyData.isFunded.call(airline); 
+    let airline3 = accounts[3];
+    let airline4 = accounts[4];
     
-    // ASSERT
-    assert.equal(result, false, "Airline not funded.");
-
-  }); */
-
-  
-
-  it('(airline) Register and fund first 4 airlines without consensus', async () => {
     
-    // ARRANGE
-    let airline = accounts[2];
-    let airline3 = accounts[4];
-    let airline4 = accounts[5];
-    const payment  = web3.toWei("10", "ether")
     // ACT
     try {
-        await config.flightSuretyApp.registerAirline(airline3, {from: accounts[2]});
-        await config.flightSuretyApp.registerAirline(airline4, {from: accounts[2]});
+        await config.flightSuretyApp.registerAirline(airline3, {from: config.firstAirline});
+        await config.flightSuretyApp.registerAirline(airline4, {from: config.firstAirline});
         //let contractBalance = await config.flightSuretyData.contractBalance.call();
     }
     catch(e) {
@@ -200,13 +189,27 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(result1, true, "Airline 3 cannot be registered.");
     assert.equal(result2, true, "Airline 4 cannot be registered.");
 
+    
+  });
+
+  it('(airline) Fund first 4 airlines without consensus', async () => {
+    
+    // ARRANGE
+    let airline = accounts[2];
+    let airline3 = accounts[3];
+    let airline4 = accounts[4];
+    
+    const payment  = web3.toWei("10", "ether")
+    // ACT
+    let reverted = false;
     try {
         await config.flightSuretyApp.fund(airline3, {from: airline3, value: payment.toString(), gasPrice: 0});
         await config.flightSuretyApp.fund(airline4, {from: airline4, value: payment.toString(), gasPrice: 0});
         //let contractBalance = await config.flightSuretyData.contractBalance.call();
     }
     catch(e) {
-
+      reverted = true;
+      //console.log(e)
     }
     let result3 = await config.flightSuretyData.isFunded.call(airline3); 
     let result4 = await config.flightSuretyData.isFunded.call(airline4); 
@@ -221,16 +224,16 @@ contract('Flight Surety Tests', async (accounts) => {
     // ARRANGE
     let airline1 = config.firstAirline;
     let airline2 = accounts[2];
-    let airline3 = accounts[4];
-    let airline4 = accounts[5];
-    let airline5 = accounts[6];
+    let airline3 = accounts[3];
+    let airline4 = accounts[4];
+    let airline5 = accounts[5];
 
     // ACT
     try {
         await config.flightSuretyApp.registerAirline(airline5, {from: airline1});
     }
     catch(e) {
-
+        console.log(e);
     }
     let result = await config.flightSuretyData.isRegistered.call(airline5); 
 
@@ -273,7 +276,7 @@ contract('Flight Surety Tests', async (accounts) => {
     
     // ACT
     try {
-        await config.flightSuretyApp.registerFlight(time, airline, flightNumber, {from: airline});
+        await config.flightSuretyApp.registerFlight(time, airline, flightNumber, {from: config.firstAirline});
     }
     catch(e) {
 
