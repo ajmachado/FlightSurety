@@ -21,44 +21,49 @@ let registeredOracles = []
         console.log(error);
 
       } else {
-        console.log(result);
-      }
-    });
-  /* flightSuretyApp.methods.REGISTRATION_FEE().call({ from: accounts[0] },(error, result) => {
-    console.log(accounts);
-    if(error){
-      console.log(error);
-    }else{
-    //Register 20 oracles
-    
-      for(var i = 10; i < 11; i++){
-      console.log(accounts[i]);
-      flightSuretyApp.methods
-        .registerOracle()
-        .send({ from: accounts[i], value: result}, (error, result2) => {
+        //console.log(result);
+      
+        flightSuretyApp.methods.REGISTRATION_FEE().call({ from: accounts[0] },(error, result) => {
+          //console.log(accounts);
           if(error){
             console.log(error);
           }else{
-            /* flightSuretyApp.methods
-            .getMyIndexes()
-            .call({ from: accounts[i]}, (error, result) => {
-              if(error){
-                console.log(error);
-              }else{
-                let oracle = [account[i], result];
-                registeredOracles.push(oracle);
-                console.log ("Oracle : " + oracle);
+            //const payment  = web3.toWei("10", "ether");
+            let regFee = web3.utils.toWei("1", "ether").toString();
+            console.log(regFee);
+          //Register 20 oracles
+              for(var i = 10; i < 11; i++){
+                console.log(accounts[i]);                               
+                flightSuretyApp.methods
+                  .registerOracle()
+                  .send({ from: accounts[i], value: regFee, gas:3000000}, (error, result2) => {
+                    if(error){
+                      console.log(error);
+                    }else{
+                      flightSuretyApp.methods.oracles(accounts[i]).call({ from: accounts[0] },function(err,res) {
+                        console.log(res)
+                      });
+                      flightSuretyApp.methods.generateIndexes(accounts[i]).call({ from: accounts[0] },function(err,res) {
+                        console.log(res)
+                      });
+                      flightSuretyApp.methods
+                      .getMyIndexes()
+                      .call({ from: accounts[i] }, (error, result3) => {
+                        if(error){
+                          console.log(error);
+                        }else{
+                          let oracle = [accounts[i], result3];
+                          registeredOracles.push(oracle);
+                          console.log ("Oracle : " + oracle);
+                        }
+                      }); 
+                    }
+                  });
               }
-            }); 
           }
-        });
+        }); 
       }
-    }  */
-  //});
-  
-  
-   
-
+    });
 }); 
 
 flightSuretyApp.events.OracleRequest({
@@ -68,7 +73,7 @@ flightSuretyApp.events.OracleRequest({
       console.log(error);
     }else{
       console.log(event);
-      /*  var statusCodes = [0, 10, 20, 30, 40, 50];
+        var statusCodes = [0, 10, 20, 30, 40, 50];
       var statusCode = statusCodes[Math.floor(Math.random() * statusCodes.length)];
 
       let indexes;
@@ -85,7 +90,7 @@ flightSuretyApp.events.OracleRequest({
               } 
             });
         } 
-      } */
+      } 
     }
 });
 
