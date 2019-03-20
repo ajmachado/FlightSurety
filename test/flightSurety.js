@@ -130,15 +130,17 @@ contract('Flight Surety Tests', async (accounts) => {
     
     
     //console.log(config.weiMultiple.toNumber());
+    //let payment = config.weiMultiple.toString();
+    let payment  = web3.toWei("10", "ether").toString();
     
     // ACT
     let revert = false;
     try {
-        await config.flightSuretyApp.fund(airline, {from: airline, value: payment.toString(), gas:3000000});
+        await config.flightSuretyApp.fund(airline, {from: airline, value: payment, gas:3000000});
     }
     catch(e) {
       revert = true;
-      //console.log(e);
+      console.log(e);
     }
     let result = await config.flightSuretyData.isFunded.call(airline); 
     // ASSERT
