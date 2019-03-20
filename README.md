@@ -2,7 +2,7 @@
 
 FlightSurety is a sample application project for Udacity's Blockchain course.
 
-##Version Info
+## Version Info
 
 Truffle v4.1.14 (core: 4.1.14)
 
@@ -22,7 +22,7 @@ To install, download or clone the repo, then:
 
 ## Develop Client
 
-###Tests
+### Tests
 To run truffle tests:
 Start Ganache CLI in the terminal using
 `ganache-cli -p 8545 -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" -a 35 -l 80000000000`
