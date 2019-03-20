@@ -3,6 +3,7 @@
 FlightSurety is a sample application project for Udacity's Blockchain course.
 
 ##Version Info
+
 Truffle v4.1.14 (core: 4.1.14)
 Solidity v0.4.24 (solc-js)
 Ganache CLI v6.2.5 (ganache-core: 2.3.3)
