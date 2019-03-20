@@ -25,6 +25,7 @@ To install, download or clone the repo, then:
 ### Tests
 To run truffle tests:
 Start Ganache CLI in the terminal using
+
 `ganache-cli -p 8545 -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" -a 35 -l 80000000000`
 
 In a second terminal window run the following commands
