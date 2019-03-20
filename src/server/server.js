@@ -14,24 +14,15 @@ let registeredOracles = []
 //Get Oracle accounts
  web3.eth.getAccounts( (error, accounts) => {
   //Get registration fee from app
-  flightSuretyApp.methods
-    .REGISTRATION_FEE()
-    .call({ from: accounts[0]}, (error, result) => {
-      if(error) {
-        console.log(error);
-
-      } else {
-        console.log(result);
-      
+       
         flightSuretyApp.methods.REGISTRATION_FEE().call({ from: accounts[0] },(error, result) => {
           //console.log(accounts);
           if(error){
             console.log(error);
           }else{
-            //const payment  = web3.toWei("10", "ether");
-            let regFee = web3.utils.toWei("1", "ether").toString();
-            console.log(regFee);
-          //Register 20 oracles
+            let regFee = result.toString();
+            
+            //Register 20 oracles
             let oracle;
             for(var i = 10; i < 11; i++){
                 console.log(accounts[i]);                               
@@ -40,6 +31,7 @@ let registeredOracles = []
                     if(error){
                       console.log(error);
                     }else{
+                      console.log(result2);
                       flightSuretyApp.methods.oracles(accounts[i]).call({ from: accounts[0] },function(err,res) {
                         console.log(res)
                       });
@@ -62,8 +54,7 @@ let registeredOracles = []
               }
           }
         }); 
-      }
-    });
+      
 }); 
 
 flightSuretyApp.events.OracleRequest({
