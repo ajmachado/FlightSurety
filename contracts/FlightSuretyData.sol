@@ -206,6 +206,7 @@ contract FlightSuretyData {
             bool mode
         ) 
         external
+        requireContractOwner
     {
         operational = mode;
        
@@ -389,7 +390,6 @@ contract FlightSuretyData {
     {
         //require(isFunded(_airline) == false, "Airline is already funded");
         RegisteredAirlines[_airline].isFunded = true;
-        //contractOwner.transfer(fundAmt);
         contractBalance.add(fundAmt);
         registered.push(_airline);
     }
@@ -445,6 +445,22 @@ contract FlightSuretyData {
         amount = FlightInsuredAmount[flight];
     }
 
+    function getPassengerCredits
+        (
+            address passenger
+        )
+        external
+        view
+        requireIsOperational
+        returns
+        (
+            uint amount
+        )
+    {
+        return InsurancePayment[passenger];
+    }
+
+    //Function is in place for testing purposes only
     function testFunction() public view requireIsOperational returns(bool success)
     {
         success = true;

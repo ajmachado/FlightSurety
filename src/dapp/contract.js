@@ -163,7 +163,7 @@ export default class Contract {
                 if(error) {
                     console.log(error);
                 } else {
-                    
+                    console.log(result);
                     for(var i = 0; i < this.airlines.length; i++){
                         if(self.airlines[i][0] == airline)
                         self.airlines[i][2] = true;
@@ -239,7 +239,7 @@ export default class Contract {
         for(var i= 0; i< self.flights.length; i++){
             amt = await self.flightSuretyApp.methods
                 .getFlightsInsured(passenger, self.flights[i][1])
-                .send({from: this.owner});
+                .call({from: self.owner});
             if(amt > 0){
                 insuranceInfo.push([self.flights[i][1], amt]);
             }
@@ -247,6 +247,39 @@ export default class Contract {
         callback(insuranceInfo);
     }
 
+    async getPassengerCredits(passenger, callback){
+        let self = this;
+
+        self.flightSuretyApp.methods
+            .getPassengerCredits(passenger)
+            .call({from: self.owner}, (error, result) =>{
+                if(error){
+                    console.log(error);
+                }else {
+                    callback(Web3.utils.fromWei(result.toString(), "ether"));
+                }
+            });
+    }
     
+    async getPassengerBalance(passenger, callback){
+        let self = this;
+
+        let balance = await self.web3.eth.getBalance(passenger);
+        callback(Web3.utils.fromWei(balance.toString(), "ether"));
+    }
+
+    async withdraw(passenger, callback){
+        let self = this;
+
+        await self.flightSuretyApp.methods
+            .withdrawPayout()
+            .call({from: passenger}, (error, result) => {
+                if(error){
+                    console.log(error);
+                }else {
+                    callback(result);
+                }
+            });
+    }
 
 }

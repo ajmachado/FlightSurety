@@ -128,13 +128,13 @@ contract('Flight Surety Tests', async (accounts) => {
     // ARRANGE
     let airline = accounts[2];
     
-    const payment  = web3.toWei("10", "ether");
+    
     //console.log(config.weiMultiple.toNumber());
     
     // ACT
     let revert = false;
     try {
-        await config.flightSuretyApp.fund(airline, {from: airline, value: payment.toString(), gasPrice:0});
+        await config.flightSuretyApp.fund(airline, {from: airline, value: payment.toString(), gas:3000000});
     }
     catch(e) {
       revert = true;

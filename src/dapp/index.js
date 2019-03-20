@@ -40,7 +40,7 @@ import './flightsurety.css';
             // Write transaction
             if(amount == 10){
                 contract.fundAirline(airline, amount, (error, result) => {
-                    displayFund('Airline funding', [ { label: 'Funding status : ', error: error, airline: airline, amount: amount} ]);
+                    displayFund('Airline funding', [ { label: 'Funding status : ', TXid: error, airline: airline, amount: amount} ]);
                 });
             }
             else {
@@ -101,6 +101,36 @@ import './flightsurety.css';
             else {
                 alert("Insurance Amount is required and should be a number.");
             }
+        })
+
+        // User-submitted transaction. Get Insurance Credits
+        DOM.elid('checkCredit').addEventListener('click', () => {
+            
+            // Write transaction
+            contract.getPassengerCredits(contract.passengers[0], (result) => {
+                //let creditText = DOM.elid('passCredit').value + " " + result;
+                DOM.elid('passCredit').textContent = DOM.elid('passCredit').textContent + " " + result + "ETH";
+            });
+        })
+
+        // User-submitted transaction. Get Account Balance
+        DOM.elid('getBalance').addEventListener('click', () => {
+            
+            // Write transaction
+            contract.getPassengerBalance(contract.passengers[0], (result) => {
+                //let creditText = DOM.elid('passBalance').value + " " + result;
+                
+                DOM.elid('passBal').textContent = DOM.elid('passBal').textContent + " " + result + "ETH";
+            });
+        })
+
+        // User-submitted transaction. Withdraw Incurance credit
+        DOM.elid('withdraw').addEventListener('click', () => {
+            
+            // Write transaction
+            contract.withdraw(contract.passengers[0], (error, result) => {
+                DOM.elid('withdraw-status').innerHTML = result;          
+            });
         })
     
     });
@@ -167,9 +197,8 @@ function displayFund(title, results) {
     section.appendChild(DOM.h5(title));
     results.map((result) => {
         let row = section.appendChild(DOM.div({className:'row'}));
-        row.appendChild(DOM.div({className: 'col-sm-4 field'}, result.label));
-        console.log(result);
-        row.appendChild(DOM.div({className: 'col-sm-8 field-value'}, result.error ? String(result.error) : ("Funded : TX: " + String(result.airline))));
+        row.appendChild(DOM.div({className: 'col-sm-4 field'}, String(result.airline) + "Funded."));
+        row.appendChild(DOM.div({className: 'col-sm-8 field-value'}, result.TXid ? ("TX Id : " + String(result.TXid)) : ("Funded : TX: " + String(result.airline))));
         section.appendChild(row);
     })
     displayDiv.append(section);

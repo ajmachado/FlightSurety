@@ -326,12 +326,28 @@ contract FlightSuretyApp {
             string flight
         )
         external 
+        view
         returns
         (
             uint amount
         )
     {
         amount = flightSuretyData.getFlightAmountInsured(flight);
+    }
+
+    function getPassengerCredits
+        (
+            address passenger
+        )
+        external
+        view
+        requireIsOperational
+        returns
+        (
+            uint amount
+        )
+    {
+        return flightSuretyData.getPassengerCredits(passenger);
     }
 
 
@@ -371,7 +387,7 @@ contract FlightSuretyApp {
     }
 
     // Track all registered oracles
-    mapping(address => Oracle) private oracles;
+    mapping(address => Oracle) public oracles;
 
     // Model for responses from oracles
     struct ResponseInfo {
@@ -395,6 +411,7 @@ contract FlightSuretyApp {
     // Oracles track this and if they have a matching index
     // they fetch data and submit a response
     event OracleRequest(uint8 index, address airline, string flight, uint256 timestamp);
+    event OracleRegistered(address oracle);
 
 
     // Register an oracle with the contract
@@ -406,6 +423,8 @@ contract FlightSuretyApp {
         uint8[3] memory indexes = generateIndexes(msg.sender);
 
         oracles[msg.sender] = Oracle({isRegistered: true, indexes: indexes});
+
+        emit OracleRegistered(msg.sender);
     }
 
     function getMyIndexes
@@ -471,7 +490,7 @@ contract FlightSuretyApp {
         (                       
             address account         
         )
-        internal
+        public
         returns
         (
             uint8[3] memory
@@ -528,4 +547,6 @@ contract FlightSuretyData {
     function withdraw(address payee, uint amount) external payable;
     function getFlightsInsured(address passenger, string flight) external returns(uint amount);
     function getFlightAmountInsured(string flight) external view returns(uint amount) ;
+    function getPassengerCredits(address passenger) external view returns(uint amount);
+    
 }

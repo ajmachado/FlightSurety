@@ -21,7 +21,7 @@ let registeredOracles = []
         console.log(error);
 
       } else {
-        //console.log(result);
+        console.log(result);
       
         flightSuretyApp.methods.REGISTRATION_FEE().call({ from: accounts[0] },(error, result) => {
           //console.log(accounts);
@@ -32,11 +32,11 @@ let registeredOracles = []
             let regFee = web3.utils.toWei("1", "ether").toString();
             console.log(regFee);
           //Register 20 oracles
-              for(var i = 10; i < 11; i++){
+            let oracle;
+            for(var i = 10; i < 11; i++){
                 console.log(accounts[i]);                               
                 flightSuretyApp.methods
-                  .registerOracle()
-                  .send({ from: accounts[i], value: regFee, gas:3000000}, (error, result2) => {
+                  .registerOracle().call({ from: accounts[i], value: regFee, gas:3000000}, (error, result2) => {
                     if(error){
                       console.log(error);
                     }else{
@@ -52,7 +52,7 @@ let registeredOracles = []
                         if(error){
                           console.log(error);
                         }else{
-                          let oracle = [accounts[i], result3];
+                          oracle = [accounts[i], result3];
                           registeredOracles.push(oracle);
                           console.log ("Oracle : " + oracle);
                         }
@@ -73,7 +73,7 @@ flightSuretyApp.events.OracleRequest({
       console.log(error);
     }else{
       console.log(event);
-        var statusCodes = [0, 10, 20, 30, 40, 50];
+      var statusCodes = [0, 10, 20, 30, 40, 50];
       var statusCode = statusCodes[Math.floor(Math.random() * statusCodes.length)];
 
       let indexes;
