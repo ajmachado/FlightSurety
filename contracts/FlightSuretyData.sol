@@ -303,7 +303,7 @@ contract FlightSuretyData {
             InsuredPassengers[passenger].flights.push(flight);
            
         }else { 
-             paid[0] = false; //set isPaid to false
+            paid[0] = false; //set isPaid to false
             insurance[0] = amount; //Set insurance premium amount
             _flights[0] = flight; //Set flight 
             InsuredPassengers[passenger] = Passenger({isInsured: true, isPaid: paid, insurancePaid: insurance, flights: _flights}); 
@@ -332,9 +332,11 @@ contract FlightSuretyData {
 
         for(uint i = 0; i < passengers.length; i++){
             index = getFlightIndex(passengers[i], flight) - 1;
-            InsuredPassengers[passengers[i]].isPaid[index] = true;
-            amount = (InsuredPassengers[passengers[i]].insurancePaid[index]).mul(15).div(10);
-            InsurancePayment[passengers[i]] = InsurancePayment[passengers[i]].add(amount); 
+            if(InsuredPassengers[passengers[i]].isPaid[index] == false){
+                InsuredPassengers[passengers[i]].isPaid[index] = true;
+                amount = (InsuredPassengers[passengers[i]].insurancePaid[index]).mul(15).div(10);
+                InsurancePayment[passengers[i]] = InsurancePayment[passengers[i]].add(amount); 
+            }
         } 
     }
 
@@ -361,8 +363,13 @@ contract FlightSuretyData {
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function withdraw(address payee) external payable checkAmount(payee) requireIsOperational
+    function withdraw(address payee) external payable requireIsOperational requireAuthorizedCaller
     {
+        require(InsurancePayment[payee] > 0, "There is no payout.");
+        uint amount  = InsurancePayment[payee];
+        InsurancePayment[payee] = 0;
+        contractBalance = contractBalance.sub(amount);
+        payee.transfer(amount);
     }
 
    /**
@@ -413,7 +420,7 @@ contract FlightSuretyData {
             bool status
         )
     {
-        address[] passengers = FlightPassengers[flight];
+        address[] memory passengers = FlightPassengers[flight];
         status = false;
         for(uint i = 0; i < passengers.length; i++){
             if(passengers[i] == passenger){

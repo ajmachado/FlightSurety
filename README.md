@@ -59,6 +59,7 @@ To view dapp:
 In terminal run
 
 `truffle compile`
+
 `truffle migrate --reset`
 
 In second terminal run
@@ -83,7 +84,7 @@ The Operating status of the App is displayed on top
 
     1. Purchase flight Insurance by selecting the flight from the dropdown.
     
-    2. Check flight status and claim Insurance.
+    2. Check flight status. An Insurance payout is processed by the App if the flight is delayed due to the Airline's fault.
     
     3. Check Insurance credit issued by the App.
     
