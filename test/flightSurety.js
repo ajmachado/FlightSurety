@@ -82,7 +82,7 @@ contract('Flight Surety Tests', async (accounts) => {
       assert.equal(reverted, false, "Reset operational status failed");
   });
 
-  it('(airline) can register an Airline using registerAirline() if it is funded', async () => {
+   it('(airline) can register an Airline using registerAirline() if it is funded', async () => {
     
     // ARRANGE
     let newAirline = accounts[2];
@@ -123,12 +123,11 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
-  it('(airline) airline is funded with 10 ETH. Use fund() function', async () => {
+  /*it('(airline) airline is funded with 10 ETH. Use fund() function', async () => {
     
     // ARRANGE
     let airline = accounts[2];
-    
-    
+        
     //console.log(config.weiMultiple.toNumber());
     //let payment = config.weiMultiple.toString();
     let payment  = web3.toWei("10", "ether").toString();
@@ -140,7 +139,7 @@ contract('Flight Surety Tests', async (accounts) => {
     }
     catch(e) {
       revert = true;
-      console.log(e);
+      //console.log(e);
     }
     let result = await config.flightSuretyData.isFunded.call(airline); 
     // ASSERT
@@ -385,5 +384,5 @@ contract('Flight Surety Tests', async (accounts) => {
     // ASSERT
     assert.equal(revert, true, "Passenger could not be insured");
 
-  }); 
+  });  */
 });

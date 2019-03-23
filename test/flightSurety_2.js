@@ -1,6 +1,7 @@
 
 var Test = require('../config/testConfig.js');
 var BigNumber = require('bignumber.js');
+const truffleAssert = require('truffle-assertions');
 
 contract('Flight Surety Tests', async (accounts) => {
 
@@ -66,7 +67,7 @@ contract('Flight Surety Tests', async (accounts) => {
     
   });
 
-  it('(airline) Fund first 4 airlines without consensus', async () => {
+   it('(airline) Fund first 4 airlines without consensus', async () => {
     
     // ARRANGE
     let airline = accounts[2];
@@ -91,9 +92,9 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(result3, true, "Airline 3 cannot be funded.");
     assert.equal(result4, true, "Airline 4 cannot be funded.");
 
-  });
+  }); 
 
-  it('(airline) Register 5th airline. Test Consensus - Register', async () => {
+   it('(airline) Register 5th airline. Test Consensus - Register', async () => {
     
     // ARRANGE
     let airline1 = config.firstAirline;
@@ -140,7 +141,7 @@ contract('Flight Surety Tests', async (accounts) => {
     // ASSERT
     assert.equal(result, false, "5th Airline cannot be added without consensus");
 
-  });  
+  });   
 
    it('(airline) airline needs minimum 10 ETH to be funded. Use fund() function', async () => {
     
@@ -228,8 +229,86 @@ contract('Flight Surety Tests', async (accounts) => {
     }
     let result = await config.flightSuretyData.isInsured.call(passenger, flightNumber); 
     
+    
     // ASSERT
     assert.equal(result, true, "Passenger could not be insured");
+
+  });
+
+  it('(passenger) Credit Insuree if flight delayed by airline', async () => {
+    
+    // ARRANGE    
+    let passenger = accounts[7];
+    let flightNumber = "UA141";
+    let airline = accounts[2];
+    let regFee = await config.flightSuretyApp.REGISTRATION_FEE.call();
+    let registeredOracles = []
+    let res;
+    let index
+    let indexes = [];
+
+    // ACT
+    //Register Oracles
+    for(var i = 10; i < 30; i++) {
+      await config.flightSuretyApp.registerOracle({from: accounts[i], value: regFee});
+
+      indexes = await config.flightSuretyApp.getMyIndexes({ from: accounts[i]});
+      for( var j = 0; j < indexes.length; j++){
+        indexes[j] = indexes[j].toNumber();
+      }
+      //console.log(indexes);
+      registeredOracles.push([accounts[i], indexes]);
+    }
+    //console.log(registeredOracles);
+    //Get index
+    let tx = await config.flightSuretyApp.fetchFlightStatus(airline, flightNumber, time, {from: accounts[i]});
+    truffleAssert.eventEmitted(tx, 'OracleRequest', (ev) => {
+      index = ev.index.toNumber();
+      return ev.index;
+    });
+
+    let count = 0;
+    for (var j = 0; j < registeredOracles.length; j++) {
+      indexes  = registeredOracles[j][1];
+      if(indexes.indexOf(index) != -1) {
+        try {
+          await config.flightSuretyApp.submitOracleResponse(index, airline, flightNumber, time, 20, {from: registeredOracles[j][0]});
+          count++;
+        } catch (e) {
+          console.log(e); 
+        }
+      }
+      if(count == 3) break;
+    }
+    
+    let result = await config.flightSuretyApp.getPassengerCredits(passenger, {from: passenger}); 
+    result = result.toNumber();
+    console.log(result);
+    let credited = false;
+    if(result > 0) credited = true;
+    
+    // ASSERT
+    assert.equal(credited, true, "Passenger could not be credited");
+    //assert.equal(revert, false, "Flight Status could not be processed");
+  });
+
+  it('(passenger) Withdraw payout', async () => {
+    
+    // ARRANGE
+    let passenger = accounts[7];
+                
+    let revert = false;
+    // ACT
+    try {
+        await config.flightSuretyApp.withdrawPayout({from: passenger, gasPrice: 0});
+    }
+    catch(e) {
+        revert = true;
+    }
+    //let result = await config.flightSuretyData.isInsured.call(passenger, flightNumber); 
+    
+    // ASSERT
+    assert.equal(revert, false, "Passenger could not withdraw");
 
   });
 

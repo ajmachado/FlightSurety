@@ -15,7 +15,7 @@ contract FlightSuretyData {
     mapping(address => bool) AuthorizedCallers;
 
     address private contractOwner;                                      // Account used to deploy contract
-    uint256 private contractBalance = 10;  //10 because first airline is registered and funded when contract is deployed
+    uint256 private contractBalance = 10 ether;  //10 because first airline is registered and funded when contract is deployed
 
     struct Airline {   //Airline Struct
         bool isRegistered;
@@ -55,8 +55,6 @@ contract FlightSuretyData {
     constructor(address _airline) public 
     {
         contractOwner = msg.sender;
-        //Add first airline when contract is deployed with funds
-        //RegisteredAirlines[_airline] = Airline({isRegistered: true, isFunded: true, fundBalance: 10, airlineAddress: _airline});
         registerFirstAirline(_airline);        
     }
 
@@ -117,11 +115,11 @@ contract FlightSuretyData {
      /**
     * @dev Modifier that requires the caller withdraw less than or equal to owed
     */
-    modifier checkAmount(address passenger, uint amount) {
-        require(InsurancePayment[passenger] >= amount, "Withdrawing more than owed.");
+    modifier checkAmount(address passenger) {
+        require(InsurancePayment[passenger] > 0, "There is no payout.");
         _;
-        InsurancePayment[passenger].sub(amount);
-        passenger.transfer(amount);
+        InsurancePayment[passenger] = 0;
+        passenger.transfer(InsurancePayment[passenger]);
     }
 
     /********************************************************************************************/
@@ -212,7 +210,6 @@ contract FlightSuretyData {
        
     }
 
-
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -222,6 +219,7 @@ contract FlightSuretyData {
         RegisteredAirlines[_airline] = Airline({isRegistered: true, isFunded: true, airlineAddress: _airline});
         registered.push(_airline);
     }
+
    /**
     * @dev Add an airline to the registration queue
     *      Can only be called from FlightSuretyApp contract
@@ -310,7 +308,7 @@ contract FlightSuretyData {
             _flights[0] = flight; //Set flight 
             InsuredPassengers[passenger] = Passenger({isInsured: true, isPaid: paid, insurancePaid: insurance, flights: _flights}); 
          }
-        contractBalance.add(amount);
+        contractBalance = contractBalance.add(amount);
         FlightPassengers[flight].push(passenger);
         FlightInsuredAmount[flight] = FlightInsuredAmount[flight].add(amount);  
     }
@@ -325,25 +323,19 @@ contract FlightSuretyData {
         external
         requireIsOperational
     {
-        require(FlightInsuredAmount[flight] <= contractBalance, "Not enough balance to pay insurees");
+        //require(FlightInsuredAmount[flight] <= contractBalance, "Not enough balance to pay insurees");
 
-        address[] memory passengers = FlightPassengers[flight];
-        bool[] memory paid;
-        uint[] memory insurance;
+        address[] memory passengers = new address[](FlightPassengers[flight].length);
         uint index;
+        uint amount = 0;
+        passengers = FlightPassengers[flight];
 
         for(uint i = 0; i < passengers.length; i++){
-            //code to pay passengers
-            paid = InsuredPassengers[passengers[i]].isPaid;
-            insurance = InsuredPassengers[passengers[i]].insurancePaid;
-            index = getFlightIndex(passengers[i], flight);
-            paid[index] = true;
-            InsuredPassengers[passengers[i]].isPaid = paid;
-            uint a = 15;
-            uint b = 10;
-            uint amount = insurance[index].mul(a.div(b));
-            InsurancePayment[passengers[i]].add(amount);
-        }
+            index = getFlightIndex(passengers[i], flight) - 1;
+            InsuredPassengers[passengers[i]].isPaid[index] = true;
+            amount = (InsuredPassengers[passengers[i]].insurancePaid[index]).mul(15).div(10);
+            InsurancePayment[passengers[i]] = InsurancePayment[passengers[i]].add(amount); 
+        } 
     }
 
      /**
@@ -369,7 +361,7 @@ contract FlightSuretyData {
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function withdraw(address payee, uint amount) external payable checkAmount(payee, amount) requireIsOperational
+    function withdraw(address payee) external payable checkAmount(payee) requireIsOperational
     {
     }
 
@@ -390,7 +382,8 @@ contract FlightSuretyData {
     {
         //require(isFunded(_airline) == false, "Airline is already funded");
         RegisteredAirlines[_airline].isFunded = true;
-        contractBalance.add(fundAmt);
+        //contractBalance.add(fundAmt);
+        contractBalance = contractBalance.add(fundAmt);
         registered.push(_airline);
     }
 
@@ -417,17 +410,17 @@ contract FlightSuretyData {
         requireIsOperational
         returns
         (
-            uint amount
+            bool status
         )
     {
-        amount = 0;
-        for(uint i = 0; i < InsuredPassengers[passenger].flights.length; i++){
-            if(keccak256(abi.encodePacked(InsuredPassengers[passenger].flights[i])) == keccak256(abi.encodePacked(flight))){
-                amount = InsuredPassengers[passenger].insurancePaid[i];
+        address[] passengers = FlightPassengers[flight];
+        status = false;
+        for(uint i = 0; i < passengers.length; i++){
+            if(passengers[i] == passenger){
+                status = true;
                 break;
             }
         }
-        
     }
 
     function getFlightAmountInsured
@@ -460,17 +453,30 @@ contract FlightSuretyData {
         return InsurancePayment[passenger];
     }
 
+    function getContractBalance() external view requireIsOperational returns(uint balance)
+    {
+        return contractBalance;
+    }
+
     //Function is in place for testing purposes only
     function testFunction() public view requireIsOperational returns(bool success)
     {
         success = true;
     }
 
-    function testFunction2(address passen) public view requireIsOperational returns(string memory flights)
+    function testFunction2(address passenger, string memory flight) public view requireIsOperational returns(uint amount)
     {
        //success = InsuredPassengers[passen].isInsured;
         //pass = InsuredPassengers[passen];
-        flights = InsuredPassengers[passen].flights[0];
+        //flights = InsuredPassengers[passen].flights[0];
+        //return FlightPassengers[flight][0];
+        uint index = getFlightIndex(passenger, flight) - 1;
+        uint amount1 = InsuredPassengers[passenger].insurancePaid[index];
+        amount1 = amount1.mul(15).div(10);
+        amount = amount.add(amount1); 
+        //index = index.add(1);
+        //InsurancePayment[FlightPassengers[flight][0]].add(1);
+        return amount;
     }
 
     

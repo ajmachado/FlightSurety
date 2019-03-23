@@ -300,7 +300,7 @@ contract FlightSuretyApp {
     */  
     function withdrawPayout() external payable
     {
-        flightSuretyData.withdraw(msg.sender, msg.value);
+        flightSuretyData.withdraw(msg.sender);
     }
 
     /**
@@ -315,10 +315,10 @@ contract FlightSuretyApp {
         external 
         returns
         (
-            uint amount
+            bool status
         )
     {
-        amount = flightSuretyData.getFlightsInsured(passenger, flight);
+        status = flightSuretyData.getFlightsInsured(passenger, flight);
     }
 
     function getFlightAmountInsured
@@ -369,6 +369,12 @@ contract FlightSuretyApp {
         emit OracleRequest(index, airline, flight, timestamp);
     } 
 
+    //Returns Contract Balance
+    function getContractBalance() external view returns(uint balance)
+    {
+        return flightSuretyData.getContractBalance();
+    }
+
     
 // region ORACLE MANAGEMENT
 
@@ -379,7 +385,7 @@ contract FlightSuretyApp {
     uint256 public constant REGISTRATION_FEE = 1 ether;
 
     // Number of oracles that must respond for valid status
-    uint256 private constant MIN_RESPONSES = 3;
+    uint256 public constant MIN_RESPONSES = 3;
 
     struct Oracle {
         bool isRegistered;
@@ -517,7 +523,7 @@ contract FlightSuretyApp {
         (
             address account
         )
-        internal
+        public
         returns (uint8)
     {
         uint8 maxValue = 10;
@@ -544,9 +550,9 @@ contract FlightSuretyData {
     function isRegistered(address _airline) public returns(bool _reg);
     function isFunded(address _airline) public returns(bool _reg);
     function buy(string  flight, uint256 time, address passenger, address sender, uint256 amount) public payable;
-    function withdraw(address payee, uint amount) external payable;
-    function getFlightsInsured(address passenger, string flight) external returns(uint amount);
+    function withdraw(address payee) external payable;
+    function getFlightsInsured(address passenger, string flight) external returns(bool status);
     function getFlightAmountInsured(string flight) external view returns(uint amount) ;
     function getPassengerCredits(address passenger) external view returns(uint amount);
-    
+    function getContractBalance() external view returns(uint balance);
 }
