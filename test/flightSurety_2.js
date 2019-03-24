@@ -300,8 +300,8 @@ contract('Flight Surety Tests', async (accounts) => {
                 
     let revert = false;
 
-    //let bal = await config.flightSuretyData.getAddressBalance({from: config.owner});
-    //console.log(bal);
+    let prevBalance = await config.flightSuretyData.getAddressBalance({from: config.owner});
+    console.log(prevBalance.toNumber());
     // ACT
     try {
         await config.flightSuretyApp.withdrawPayout({from: passenger});
@@ -310,8 +310,8 @@ contract('Flight Surety Tests', async (accounts) => {
         revert = true;
         console.log(e);
     }
-    //let result = await config.flightSuretyData.isInsured.call(passenger, flightNumber); 
-    
+    let postBalance = await config.flightSuretyData.getAddressBalance({from: config.owner});
+    console.log(postBalance.toNumber());   
     // ASSERT
     assert.equal(revert, false, "Passenger could not withdraw");
 
@@ -324,7 +324,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let passenger = accounts[7];
     let airline = accounts[4];
     let flightNumber = "AA241";
-    //let time = Math.floor((Date.now() + 43200)/ 1000);
+    
     const payment  = web3.toWei("2", "ether")
         
     let revert = false;
@@ -349,7 +349,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let passenger = accounts[7];
     let airline = accounts[2];
     let flightNumber = "UA141";
-    //let time = Math.floor((Date.now() + 43200)/ 1000);
+    
     const payment  = web3.toWei("1", "ether")
         
     let revert = false;
