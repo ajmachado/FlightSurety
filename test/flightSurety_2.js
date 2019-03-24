@@ -19,22 +19,27 @@ contract('Flight Surety Tests', async (accounts) => {
   it('(airline) airline is funded with 10 ETH. Use fund() function', async () => {
     
     // ARRANGE
+    let payment  = web3.toWei("10", "ether").toString();
+    try {
+      await config.flightSuretyApp.fund({from: config.firstAirline, value: payment, gasPrice: 0, gas:230000});
+    }
+    catch(e) {
+      console.log(e);
+    }
+
     let airline = accounts[2];
     await config.flightSuretyApp.registerAirline(airline, {from: config.firstAirline});
-    
-    //console.log(config.weiMultiple.toNumber());
-    let payment  = web3.toWei("10", "ether").toString(); 
     
     // ACT
     let revert = false;
     try {
-        await config.flightSuretyApp.fund(airline, {from: airline, value: payment, gasPrice:0});
+        await config.flightSuretyApp.fund({from: airline, value: payment, gasPrice: 0, gas:230000});
     }
     catch(e) {
       revert = true;
       console.log(e);
     }
-    let result = await config.flightSuretyData.isFunded.call(airline); 
+    let result = await config.flightSuretyData.isRegistered.call(airline); 
     // ASSERT
     assert.equal(result, true, "Airline not funded.");
     assert.equal(revert, false, "Airline not funded.");
@@ -78,8 +83,8 @@ contract('Flight Surety Tests', async (accounts) => {
     // ACT
     let reverted = false;
     try {
-        await config.flightSuretyApp.fund(airline3, {from: airline3, value: payment.toString(), gasPrice: 0});
-        await config.flightSuretyApp.fund(airline4, {from: airline4, value: payment.toString(), gasPrice: 0});
+        await config.flightSuretyApp.fund({from: airline3, value: payment.toString(), gasPrice: 0});
+        await config.flightSuretyApp.fund({from: airline4, value: payment.toString(), gasPrice: 0});
         //let contractBalance = await config.flightSuretyData.contractBalance.call();
     }
     catch(e) {
@@ -150,7 +155,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let reverted = false;
     // ACT
     try {
-        await config.flightSuretyApp.fund(airline, {from: airline, value: config.weiLow.toNumber()});
+        await config.flightSuretyApp.fund({from: airline, value: config.weiLow.toNumber()});
     }
     catch(e) {
       //console.log(e);
@@ -170,9 +175,7 @@ contract('Flight Surety Tests', async (accounts) => {
     
     let airline = accounts[2];
     let flightNumber = "UA141";
-    //let time = Math.floor((Date.now() + 43200)/ 1000);
-    console.log(time);
-    
+            
     // ACT
     try {
         await config.flightSuretyApp.registerFlight(time, airline, flightNumber, {from: config.firstAirline});
@@ -194,8 +197,7 @@ contract('Flight Surety Tests', async (accounts) => {
     
     let airline = accounts[2];
     let flightNumber = "UA141";
-    //let time = Math.floor((Date.now() + 43200)/ 1000);
-    
+        
     let revert = false
     // ACT
     try {
@@ -217,7 +219,6 @@ contract('Flight Surety Tests', async (accounts) => {
     let passenger = accounts[7];
     let airline = accounts[2];
     let flightNumber = "UA141";
-    //let time = Math.floor((Date.now() + 43200)/ 1000);
     const payment  = web3.toWei("1", "ether")
         
     // ACT
@@ -283,7 +284,7 @@ contract('Flight Surety Tests', async (accounts) => {
     
     let result = await config.flightSuretyApp.getPassengerCredits(passenger, {from: passenger}); 
     result = result.toNumber();
-    console.log(result);
+    //console.log(result);
     let credited = false;
     if(result > 0) credited = true;
     
@@ -298,12 +299,16 @@ contract('Flight Surety Tests', async (accounts) => {
     let passenger = accounts[7];
                 
     let revert = false;
+
+    //let bal = await config.flightSuretyData.getAddressBalance({from: config.owner});
+    //console.log(bal);
     // ACT
     try {
-        await config.flightSuretyApp.withdrawPayout({from: passenger, gasPrice: 0});
+        await config.flightSuretyApp.withdrawPayout({from: passenger});
     }
     catch(e) {
         revert = true;
+        console.log(e);
     }
     //let result = await config.flightSuretyData.isInsured.call(passenger, flightNumber); 
     

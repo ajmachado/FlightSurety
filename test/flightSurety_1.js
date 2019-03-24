@@ -86,6 +86,13 @@ contract('Flight Surety Tests', async (accounts) => {
     
     // ARRANGE
     let newAirline = accounts[2];
+    let payment  = web3.toWei("10", "ether").toString();
+    try {
+      await config.flightSuretyApp.fund({from: config.firstAirline, value: payment, gasPrice: 0, gas:230000});
+    }
+    catch(e) {
+      console.log(e);
+    }
     
     let reverted = false;
     // ACT
