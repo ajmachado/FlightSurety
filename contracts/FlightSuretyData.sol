@@ -369,13 +369,13 @@ contract FlightSuretyData {
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function withdraw(address payee) external payable requireIsOperational requireAuthorizedCaller
+    function withdraw(address payee) external payable requireIsOperational 
     {
         require(InsurancePayment[payee] > 0, "There is no payout.");
         uint amount  = InsurancePayment[payee];
         InsurancePayment[payee] = 0;
         contractBalance = contractBalance.sub(amount);
-        payee.transfer(amount);
+        payee.send(amount);
     }
 
    /**
@@ -489,16 +489,17 @@ contract FlightSuretyData {
         success = true;
     }
 
-    function testFunction2(address passenger, string memory flight) public view requireIsOperational returns(uint amount)
+    function testFunction2(address passenger) public view requireIsOperational returns(uint amount)
     {
        //success = InsuredPassengers[passen].isInsured;
         //pass = InsuredPassengers[passen];
         //flights = InsuredPassengers[passen].flights[0];
         //return FlightPassengers[flight][0];
-        uint index = getFlightIndex(passenger, flight) - 1;
-        uint amount1 = InsuredPassengers[passenger].insurancePaid[index];
-        amount1 = amount1.mul(15).div(10);
-        amount = amount.add(amount1); 
+        amount  = InsurancePayment[passenger];
+        InsurancePayment[passenger] = 0;
+        amount  = InsurancePayment[passenger];
+        //contractBalance = contractBalance.sub(amount);
+        //amount = contractBalance;
         //index = index.add(1);
         //InsurancePayment[FlightPassengers[flight][0]].add(1);
         return amount;
