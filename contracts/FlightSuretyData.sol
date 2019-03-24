@@ -392,13 +392,11 @@ contract FlightSuretyData {
         requireIsOperational
         requireAuthorizedCaller
     {
-        //require(isFunded(_airline) == false, "Airline is already funded");
+       
         RegisteredAirlines[sender].isFunded = true;
         contractBalance = contractBalance.add(fundAmt);
         registered.push(sender);
         emit Receive(fundAmt);
-        //address(this).transfer(fundAmt);
-        //contractOwner.transfer(fundAmt);
     }
 
     function getFlightKey

@@ -301,7 +301,7 @@ contract FlightSuretyApp {
     * @dev Called when passenger wants to withdraw insurance payout
     *
     */  
-    function withdrawPayout() external payable
+    function withdrawPayout() external
     {
         flightSuretyData.withdraw(msg.sender);
     }
