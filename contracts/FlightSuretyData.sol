@@ -15,7 +15,7 @@ contract FlightSuretyData {
     mapping(address => bool) AuthorizedCallers;
 
     address private contractOwner;                                      // Account used to deploy contract
-    uint256 private contractBalance = 10 ether;  //10 because first airline is registered and funded when contract is deployed
+    uint256 private contractBalance = 0 ether;  //10 because first airline is registered and funded when contract is deployed
 
     struct Airline {   //Airline Struct
         bool isRegistered;
@@ -52,11 +52,15 @@ contract FlightSuretyData {
     * @dev Constructor
     *      The deploying account becomes contractOwner
     */
-    constructor(address _airline) public 
+    constructor(address _airline) public payable
     {
         contractOwner = msg.sender;
         registerFirstAirline(_airline);        
     }
+
+
+    /*Events */
+    event Receive(uint amt);
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -216,7 +220,7 @@ contract FlightSuretyData {
     function registerFirstAirline (address _airline) internal requireIsOperational
     {
         require(msg.sender == contractOwner, "Unauthorized to use this function");
-        RegisteredAirlines[_airline] = Airline({isRegistered: true, isFunded: true, airlineAddress: _airline});
+        RegisteredAirlines[_airline] = Airline({isRegistered: true, isFunded: false, airlineAddress: _airline});
         registered.push(_airline);
     }
 
@@ -232,6 +236,7 @@ contract FlightSuretyData {
         ) 
         external 
         requireIsOperational
+        requireAuthorizedCaller
         requireRegisteredAirline(caller) //Check if caller is a registered airline
         requireFundedAirline(caller) //Check if caller is a funded airline
         returns
@@ -279,8 +284,8 @@ contract FlightSuretyData {
             uint256 amount                    
         )
         public
-        payable
         requireIsOperational
+        requireAuthorizedCaller
     {
         //Check if flight time is less than current time. Flight already departed
         //require(time > now, "Passengers cannot purchase insurance on departed or landed flights");
@@ -322,6 +327,7 @@ contract FlightSuretyData {
         )
         external
         requireIsOperational
+        requireAuthorizedCaller
     {
         //require(FlightInsuredAmount[flight] <= contractBalance, "Not enough balance to pay insurees");
 
@@ -380,18 +386,19 @@ contract FlightSuretyData {
     function fund
         (   
             uint256 fundAmt,
-            address _airline,
             address sender
         )
         public
-        payable
         requireIsOperational
+        requireAuthorizedCaller
     {
         //require(isFunded(_airline) == false, "Airline is already funded");
-        RegisteredAirlines[_airline].isFunded = true;
-        //contractBalance.add(fundAmt);
+        RegisteredAirlines[sender].isFunded = true;
         contractBalance = contractBalance.add(fundAmt);
-        registered.push(_airline);
+        registered.push(sender);
+        emit Receive(fundAmt);
+        //address(this).transfer(fundAmt);
+        //contractOwner.transfer(fundAmt);
     }
 
     function getFlightKey
@@ -415,6 +422,7 @@ contract FlightSuretyData {
         external 
         view
         requireIsOperational
+        requireAuthorizedCaller
         returns
         (
             bool status
@@ -437,6 +445,7 @@ contract FlightSuretyData {
         external 
         view 
         requireIsOperational 
+        requireAuthorizedCaller
         returns
         (
             uint amount
@@ -452,6 +461,7 @@ contract FlightSuretyData {
         external
         view
         requireIsOperational
+        requireAuthorizedCaller
         returns
         (
             uint amount
@@ -463,6 +473,16 @@ contract FlightSuretyData {
     function getContractBalance() external view requireIsOperational returns(uint balance)
     {
         return contractBalance;
+    }
+
+    function getAddressBalance() public view requireIsOperational returns(uint balance)
+    {
+        return address(this).balance;
+    }
+
+    function receive() public payable requireIsOperational
+    {
+
     }
 
     //Function is in place for testing purposes only
@@ -495,7 +515,7 @@ contract FlightSuretyData {
         external 
         payable 
     {
-        fund(msg.value, address(0), msg.sender);
+        receive();
     }
 }
 

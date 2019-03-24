@@ -22,6 +22,7 @@
 
     <main class="container">
         <div id="display-operational-status" class="top-20"></div>
+        <div id="display-contract-balance" class="top-20"></div>
         <div id="display-wrapper" class="top-20">
             <h2>Airline Section</h2>
         </div>
@@ -33,7 +34,7 @@
                 <div id="airlineInfo2"></div>
             </div>
             <div class="row top-20">
-                <label class="form">Amount (ETH)</label><input type="text" id="fundAmount" maxlength="2" size="4"/>&nbsp;&nbsp;
+                <label class="form">Amount (ETH)</label><input type="text" id="fundAmount" maxlength="2" size="4" value="10"/>&nbsp;&nbsp;
                 <btn class="btn btn-primary" id="fund">Fund Airline</btn>
             </div>
         </div>
@@ -51,6 +52,7 @@
                 <h2>Passenger Section</h2>
         </div>
         <div class="row top-20"><h4>Purchase Flight Insurance</h4></div>
+        <div id="display-wrapper-insurance-info" class="top-20"></div>
         <div id="display-wrapper-insurance-status" class="top-20"></div>
         <div class="top-20">
             <div class="top-20">
@@ -59,7 +61,7 @@
                 <div id="flightInfo2"></div>
             </div>
             <div class="row top-20">
-                <label class="form">Amount (ETH)</label><input type="text" id="insurance" maxlength="4" size="4"/>&nbsp;&nbsp;
+                <label class="form">Amount (ETH)</label><input type="text" id="insurance" maxlength="4" size="4" value="1"/>&nbsp;&nbsp;
                 <btn class="btn btn-primary" id="purchase">Purchase Insurance</btn>
             </div>
         </div>
@@ -71,17 +73,19 @@
             <select id="flights3"></select>&nbsp;&nbsp;
             <div id="flightInfo3"></div>
             <btn class="btn btn-primary" id="flight-status">Get Status</btn>
-            <div id="flightStatusInfo"><br><br></div>
-            <btn class="btn btn-primary" id="claim-insurance">Claim Insurance</btn>
+            <div id="flightStatusInfo"></div>
+            <!--<btn class="btn btn-primary" id="claim-insurance">Claim Insurance</btn>-->
         </div>
         <div id="display-claim-insurance" class="top-20">
             <div>
                 <label class="form" id="passCredit">Passenger Insurance Credit : </label>
+                <label class="form" id="passCreditAmt"></label>
                 <btn class="btn btn-primary" id="checkCredit">Check Credit</btn>
             </div>
             <div><br><br></div>
             <div>
                 <label class="form" id="passBal">Passenger Account Balance : </label>
+                <label class="form" id="passBalAmt"></label>
                 <btn class="btn btn-primary" id="getBalance">Get Balance</btn>
             </div>
         </div>

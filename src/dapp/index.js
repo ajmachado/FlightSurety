@@ -14,7 +14,7 @@ import './flightsurety.css';
             displayOperStatus('Operational Status', '' , [ { label: 'Operational Status', error: error, value: result} ]);
         });
 
-         async function getBalance() {
+        async function getBalance() {
             await contract.getContractBalance((error, result) => {
                 if(error) 
                     console.log(error);
@@ -25,6 +25,8 @@ import './flightsurety.css';
         } 
 
         getBalance();
+        getCredits();
+        getPassBalance();
     
         //Pre fill airlines dropdown with airlines that are not yet funded
         populateSelect("airline", contract.airlines, 1);
@@ -96,6 +98,7 @@ import './flightsurety.css';
                             flightStatus = result2.status;
                             displayFlightStatus('flightStatusInfo','Flight Status', '', flightStatus, [ { label: 'Flight Status : ', error: error, value: result.flight + ' ' + result.timestamp} ]);
                             getBalance();
+                            getCredits();
                         });
                 //}
                 
@@ -114,11 +117,12 @@ import './flightsurety.css';
                     let display = result;
                     if(error) display = error;
                     
-                    displayInsurance('Insurance Purchase', [ { label: 'Purchase status : ', text: display, flight: flight, amount: amount} ]);
+                    displayInsurance('Insurance Purchase', [ { label: 'Purchase TX# : ', text: display, flight: flight, amount: amount} ]);
                     if(!error) 
                     {
                         fillInsuranceInfo('Passenger Insured on : ', flight);
                         getBalance();
+                        getPassBalance();
                     }
                 });
             }
@@ -127,25 +131,27 @@ import './flightsurety.css';
             }
         })
 
-        // User-submitted transaction. Get Insurance Credits
-        DOM.elid('checkCredit').addEventListener('click', () => {
-            
-            // Write transaction
-            contract.getPassengerCredits(contract.passengers[1], (result) => {
+        async function getCredits() {
+            await contract.getPassengerCredits(contract.passengers[1], (result) => {
                 //let creditText = DOM.elid('passCredit').value + " " + result;
                 DOM.elid('passCreditAmt').textContent = result ;
             });
+        }
+
+        // User-submitted transaction. Get Insurance Credits
+        DOM.elid('checkCredit').addEventListener('click', () => {
+            getCredits();
         })
+
+        async function getPassBalance() {
+            await contract.getPassengerBalance(contract.passengers[1], (result) => {
+                DOM.elid('passBalAmt').textContent = result ;
+            });
+        }
 
         // User-submitted transaction. Get Account Balance
         DOM.elid('getBalance').addEventListener('click', () => {
-            
-            // Write transaction
-            contract.getPassengerBalance(contract.passengers[1], (result) => {
-                //let creditText = DOM.elid('passBalance').value + " " + result;
-                
-                DOM.elid('passBalAmt').textContent = result ;
-            });
+            getPassBalance();
         })
 
         // User-submitted transaction. Withdraw Incurance credit
@@ -157,6 +163,7 @@ import './flightsurety.css';
                 //DOM.elid('withdraw-status').innerHTML = result;          
             });
             getBalance();
+            getPassBalance();
         })
     
     });
@@ -307,7 +314,7 @@ function fillInsuranceInfo(title, flight){
     if(displayDiv.innerHTML.length == 0){
         displayDiv.appendChild(DOM.label(title));
     }
-    displayDiv.appendChild(DOM.label(flight + " "));
+    displayDiv.appendChild(DOM.label(" - " + flight + " "));
 }
 
 

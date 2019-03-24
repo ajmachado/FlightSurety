@@ -229,11 +229,13 @@ contract FlightSuretyApp {
     *      resulting in insurance payouts, the contract should be self-sustaining
     *
     */   
-    function fund (address airline) external payable requireIsOperational
+    function fund () external payable requireIsOperational
     {
         require(msg.value == REGISTRATION_FEE_AIRLINES, "Not enough Ether to fund airline. Requires 10 ETH" );
-        flightSuretyData.fund(REGISTRATION_FEE_AIRLINES, airline, msg.sender);
-        emit AirlineFunded(airline);
+        require(flightSuretyData.isFunded(msg.sender) == false, "Airline is already funded");
+        flightSuretyData.fund(REGISTRATION_FEE_AIRLINES, msg.sender);
+        address(flightSuretyData).transfer(REGISTRATION_FEE_AIRLINES);
+        emit AirlineFunded(msg.sender);
     }
 
     
@@ -273,6 +275,7 @@ contract FlightSuretyApp {
     //requireIsFlightRegistered(airline, flight, time)
     {
         require(msg.value <= MAX_INSURANCE_PASSENGER, "Passengers can pay a max of 1 ETH");
+        address(flightSuretyData).transfer(msg.value);
         flightSuretyData.buy(flight, time, passenger, msg.sender, msg.value);
         emit PassengerInsured();
     }
@@ -545,11 +548,11 @@ contract FlightSuretyApp {
 contract FlightSuretyData {
     function registerAirline (address _airline, address caller) external;
     function _getRegisteredAirlinesNum() external returns(uint number);
-    function fund (uint256 fundAmt, address _airline, address sender) public payable;
+    function fund (uint256 fundAmt, address sender) public;
     function creditInsurees (string  flight) external;
     function isRegistered(address _airline) public returns(bool _reg);
     function isFunded(address _airline) public returns(bool _reg);
-    function buy(string  flight, uint256 time, address passenger, address sender, uint256 amount) public payable;
+    function buy(string  flight, uint256 time, address passenger, address sender, uint256 amount) public;
     function withdraw(address payee) external payable;
     function getFlightsInsured(address passenger, string flight) external returns(bool status);
     function getFlightAmountInsured(string flight) external view returns(uint amount) ;

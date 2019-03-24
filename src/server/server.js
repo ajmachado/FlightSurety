@@ -12,7 +12,8 @@ web3.eth.defaultAccount = web3.eth.accounts[0];
 let flightSuretyApp = new web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
 let flightSuretyData = new web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
 
-let registeredOracles = []
+let registeredOracles = [];
+
 
 //Get Oracle accounts
 web3.eth.getAccounts( async (error, accounts) => {
@@ -96,12 +97,13 @@ flightSuretyApp.events.OracleRequest({
     
     for(var i = 0; i < registeredOracles.length; i++) {
       indexes  = registeredOracles[i][1];
-        
+       
       if(indexes.indexOf(index.toString()) != -1) {
           // Submit Oracle Response
           oracle = registeredOracles[i][0];
           await submitResponse(index, airline, flight, time, statusCode, oracle);
-      } 
+      
+    }
     } 
     
   }
@@ -119,6 +121,7 @@ async function submitResponse(index, airline, flight, time, statusCode, oracle){
                 } else{
                   console.log(result);
                   console.log("Sent Oracle Response " + oracle + " Status Code: " + statusCode);
+                
                 }
             });
   } catch(e){

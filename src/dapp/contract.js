@@ -24,7 +24,7 @@ export default class Contract {
 
     initialize(callback, config) {
         
-        this.web3.eth.getAccounts((error, accts) => {
+        this.web3.eth.getAccounts(async (error, accts) => {
             this.owner = accts[0];
             
             let counter = 0;
@@ -51,9 +51,9 @@ export default class Contract {
                 //Create airlines array
                 airline.push(accts[counter + 1]); //account number
                 airline.push(tempAirline[counter]); //airline name
-                if(counter == 0)
+                /* if(counter == 0)
                     airline.push(true);
-                else
+                else */
                     airline.push(false); //funding status
 
                 this.airlines.push(airline);
@@ -74,9 +74,10 @@ export default class Contract {
             this.authorizeCaller(config.appAddress); //Authorize call for the data contract
 
             //register the airlines and flights
+            await this.fundAirline(this.airlines[0][0], "10", (error, result) => { } )
             this.registerAirlines((error, result) => { }); //Registers all airlines
             this.registerFlights((error, result) => { }); //Register 5 flights to pre fill flight dropdown
-
+            
             callback();
         });
     }
@@ -145,7 +146,7 @@ export default class Contract {
         let sendAmt = self.web3.utils.toWei(amount, "ether").toString();
                         
         await self.flightSuretyApp.methods
-            .fund(airline)
+            .fund()
             .send({ from: airline, value: sendAmt, gas:3000000 }, (error, result) => {
                 if(error) {
                     console.log(error);
@@ -181,7 +182,7 @@ export default class Contract {
         await self.flightSuretyApp.methods
             .insurePassenger(tempFlight[1], tempFlight[2], tempFlight[0], self.passengers[1])
             .send({ from: self.passengers[1], value: sendAmt,  gas:3000000 }, (error, result) => {
-                /* self.flightSuretyData.methods
+                 self.flightSuretyData.methods
                 .testFunction2(self.passengers[1], tempFlight[1])
                 .call({from: self.owner}, (err, res) => {
                     if(err){
@@ -190,7 +191,7 @@ export default class Contract {
                     {
                         console.log(res);
                     }
-                }); */
+                }); 
                 callback(error, result);
             });
     }
@@ -233,7 +234,7 @@ export default class Contract {
             if(error) {
                 console.log(error);
             } else {
-                console.log(event.returnValues);
+                //console.log(event.returnValues);
                 callback(event.returnValues);
             }
         })
@@ -243,8 +244,7 @@ export default class Contract {
         let self = this
         let insuranceInfo = [];
         let amt;
-        //console.log(passenger);
-       
+               
         for(var i= 0; i< self.flights.length; i++){
             //console.log(self.flights[i][1]);
             await self.flightSuretyApp.methods
@@ -267,7 +267,7 @@ export default class Contract {
 
         self.flightSuretyApp.methods
             .getPassengerCredits(passenger)
-            .call({from: self.owner}, (error, result) =>{
+            .call({from: passenger}, (error, result) =>{
                 if(error){
                     console.log(error);
                 }else {
