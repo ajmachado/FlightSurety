@@ -136,8 +136,8 @@ export default class Contract {
     async getContractBalance(callback) {
         let self = this;
 
-        await self.flightSuretyApp.methods
-        .getContractBalance()
+        await self.flightSuretyData.methods
+        .getAddressBalance()
         .call({ from: self.owner }, callback);
     }
 
