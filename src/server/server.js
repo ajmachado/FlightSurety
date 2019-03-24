@@ -28,51 +28,43 @@ web3.eth.getAccounts( async (error, accounts) => {
         console.log("Set Authorized caller.");
       }
     });
-        //Get registration fee from app
-        flightSuretyApp.methods.REGISTRATION_FEE().call({ from: accounts[0] }, async (error, result) => {
-          //console.log(accounts);
-          if(error){
-            console.log(error);
-          }else{
-            let regFee = result.toString();
+
+  //Get registration fee from app
+  flightSuretyApp.methods.REGISTRATION_FEE().call({ from: accounts[0] }, async (error, result) => {
+    if(error){
+      console.log(error);
+    }else{
+      let regFee = result.toString();
             
-            //Register 20 oracles
-            let oracle = [];
-            let indexes = [];
-            for(var i = 10; i < 40; i++){
-              let accountOra = accounts[i];
-                //console.log("registration fee "+regFee);   
-                //console.log("Account "+accounts[i]);
-                await flightSuretyApp.methods
-                  .registerOracle().send({ from: accountOra, value: regFee, gas:3000000}, async (error, result2) => {
-                    if(error){
-                      console.log(error);
-                    }else{
-                      //console.log("sucess");
-                      /* console.log(result2);
-                      flightSuretyApp.methods.oracles(accountOra).call({ from: accountOra },function(err,res) {
-                        console.log(res)
-                      }); */
-                      
-                await flightSuretyApp.methods
-                      .getMyIndexes()
-                      .call({ from: accountOra }, (error, result3) => {
-                        if(error){
-                          console.log(error);
-                        }else{
-                          indexes = result3;
-                          oracle.push(accountOra);
-                          oracle.push(indexes);
-                          registeredOracles.push(oracle);
-                          //console.log ("Oracle : " + oracle);
-                          oracle = [];
-                        }
-                      }); 
-                    }
-                  });
-              }
-          }
-        }); 
+      //Register 20 oracles
+      let oracle = [];
+      let indexes = [];
+      for(var i = 10; i < 40; i++){
+        let accountOra = accounts[i];
+        await flightSuretyApp.methods
+          .registerOracle().send({ from: accountOra, value: regFee, gas:3000000}, async (error, result2) => {
+            if(error){
+              console.log(error);
+            }else{
+              await flightSuretyApp.methods
+                .getMyIndexes()
+                .call({ from: accountOra }, (error, result3) => {
+                  if(error){
+                    console.log(error);
+                  }else{
+                    indexes = result3;
+                    oracle.push(accountOra);
+                    oracle.push(indexes);
+                    registeredOracles.push(oracle);
+                    //console.log ("Oracle : " + oracle);
+                    oracle = [];
+                  }
+              }); 
+            }
+        });
+      }
+    }
+  }); 
       
 }); 
 
@@ -84,8 +76,8 @@ flightSuretyApp.events.OracleRequest({
   }else{
     //console.log(event);
     var statusCodes = [0, 10, 20, 30, 40, 50];
-    //var statusCode = statusCodes[Math.floor(Math.random() * statusCodes.length)];
-    var statusCode = 20; //to test
+    var statusCode = statusCodes[Math.floor(Math.random() * statusCodes.length)];
+    //var statusCode = 20; //to test
 
     let indexes;
     let oracle;
@@ -120,7 +112,7 @@ async function submitResponse(index, airline, flight, time, statusCode, oracle){
                   //console.log(error);
                 } else{
                   console.log(result);
-                  console.log("Sent Oracle Response " + oracle + " Status Code: " + statusCode);
+                  console.log("Sent Oracle Response for " + oracle + " Status Code: " + statusCode);
                 
                 }
             });

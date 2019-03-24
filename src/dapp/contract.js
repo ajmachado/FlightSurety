@@ -182,16 +182,6 @@ export default class Contract {
         await self.flightSuretyApp.methods
             .insurePassenger(tempFlight[1], tempFlight[2], tempFlight[0], self.passengers[1])
             .send({ from: self.passengers[1], value: sendAmt,  gas:3000000 }, (error, result) => {
-                 self.flightSuretyData.methods
-                .testFunction2(self.passengers[1], tempFlight[1])
-                .call({from: self.owner}, (err, res) => {
-                    if(err){
-                        console.log(err);
-                    }else
-                    {
-                        console.log(res);
-                    }
-                }); 
                 callback(error, result);
             });
     }
@@ -287,15 +277,26 @@ export default class Contract {
     async withdraw(passenger, callback){
         let self = this;
 
-        await self.flightSuretyApp.methods
-            .withdrawPayout()
-            .call({from: passenger}, (error, result) => {
+        /* await self.flightSuretyData.methods
+            .testFunction2(passenger)
+            .call({from: self.owner}, (error, result) => {
                 if(error){
                     console.log(error);
                 }else {
                     callback(result);
                 }
-            });
+            }); */
+
+         await self.flightSuretyApp.methods
+            .withdrawPayout()
+            .send({from: passenger}, (error, result) => {
+                if(error){
+                    console.log(error);
+                }else {
+                    console.log(result);
+                    callback(result);
+                }
+            }); 
     }
 
 }

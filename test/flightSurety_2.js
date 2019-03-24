@@ -301,19 +301,31 @@ contract('Flight Surety Tests', async (accounts) => {
     let revert = false;
 
     let prevBalance = await config.flightSuretyData.getAddressBalance({from: config.owner});
-    console.log(prevBalance.toNumber());
+    console.log(`contract Balance before payout: ${prevBalance.toNumber()}`);
     // ACT
     try {
         await config.flightSuretyApp.withdrawPayout({from: passenger});
+        //Get balance of the passenger previous to the transaction
+        /* let previousBalance = await web3.fromWei(web3.eth.getBalance(passenger));
+        console.log(previousBalance);
+        var transaction = await config.flightSuretyApp.withdrawPayout({from: passenger});
+        //Get gasUsed by the transaction
+        let gasPrice = 20000000000;
+        let gasUsed = transaction.receipt.gasUsed * 20000000000;
+        //Get balance of the passenger after the transaction
+        let afterBalance = await web3.eth.getBalance(passenger); */
     }
     catch(e) {
         revert = true;
         console.log(e);
     }
     let postBalance = await config.flightSuretyData.getAddressBalance({from: config.owner});
-    console.log(postBalance.toNumber());   
+    console.log(`contract Balance after payout: ${postBalance.toNumber()}`);
+       
     // ASSERT
     assert.equal(revert, false, "Passenger could not withdraw");
+    //(Balance previous to transaction) < (Balance after transaction) + (gasUsed by the transaction)
+    //assert.equal(parseInt(previousBalance) < (gasUsed + parseInt(afterBalance)), true, "Passenger could not withdraw");
 
   });
 

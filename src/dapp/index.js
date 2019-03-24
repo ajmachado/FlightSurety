@@ -159,11 +159,13 @@ import './flightsurety.css';
             
             // Write transaction
             contract.withdraw(contract.passengers[1], (result) => {
-                console.log(result);
-                //DOM.elid('withdraw-status').innerHTML = result;          
+                //console.log(result);
+                DOM.elid('withdraw-status').innerHTML = DOM.elid('withdraw-status').innerHTML + "<br> TX ID: " + result;
+                getBalance();
+                getCredits();
+                getPassBalance();          
             });
-            getBalance();
-            getPassBalance();
+            
         })
     
     });
