@@ -32,10 +32,10 @@ contract FlightSuretyData {
         uint256[] insurancePaid;
         string[] flights;
     }
-    mapping(address => Passenger) private InsuredPassengers; //Passenger mapping
+    mapping(address => Passenger) public InsuredPassengers; //Passenger mapping
 
     //Flight to passenger mapping
-    mapping(string => address[]) private FlightPassengers;
+    mapping(string => address[]) FlightPassengers;
 
     //Flight to totalInsured Amount mapping e.g. UA047 => 5 ETH
     mapping(string => uint256) private FlightInsuredAmount;
@@ -345,6 +345,53 @@ contract FlightSuretyData {
             }
         } 
     }
+
+    function getPassengersInsured
+        (
+            string flight
+        )
+        external
+        requireIsOperational
+        requireAuthorizedCaller
+        returns(address[] passengers)
+    {
+        return FlightPassengers[flight];
+    }
+
+    function GetInsuredAmount
+        (
+            string  flight,
+            address passenger
+        )
+        external
+        requireIsOperational
+        requireAuthorizedCaller
+        returns(uint amount)
+    {
+        amount = 0;
+        
+        uint index = getFlightIndex(passenger, flight) - 1;
+        if(InsuredPassengers[passenger].isPaid[index] == false)
+        {
+            amount = InsuredPassengers[passenger].insurancePaid[index];
+        } 
+        return amount;
+    }
+
+    function SetInsuredAmount
+        (
+            string  flight,
+            address passenger,
+            uint amount
+        )
+        external
+        requireIsOperational
+        requireAuthorizedCaller
+    {
+        uint index = getFlightIndex(passenger, flight) - 1;
+        InsuredPassengers[passenger].isPaid[index] = true;
+        InsurancePayment[passenger] = InsurancePayment[passenger].add(amount);
+    } 
 
      /**
      *  @dev Get Index array of Flight

@@ -292,7 +292,19 @@ contract FlightSuretyApp {
         internal
     {
         if(statusCode == STATUS_CODE_LATE_AIRLINE){
-            flightSuretyData.creditInsurees(flight);
+            //flightSuretyData.creditInsurees(flight);
+            address[] memory passengers = flightSuretyData.getPassengersInsured(flight);
+            uint amount = 0;
+            address passenger;
+            uint index;
+            //passengers = flightSuretyData.FlightPassengers[flight];
+
+            for(uint i = 0; i < passengers.length; i++){
+                passenger = passengers[i];
+                amount = flightSuretyData.GetInsuredAmount(flight, passenger);
+                amount = amount.mul(15).div(10);
+                flightSuretyData.SetInsuredAmount(flight, passenger, amount); 
+            } 
             emit InsureesCredited(flight);
         }
     }
@@ -558,4 +570,7 @@ contract FlightSuretyData {
     function getFlightAmountInsured(string flight) external view returns(uint amount) ;
     function getPassengerCredits(address passenger) external view returns(uint amount);
     function getContractBalance() external view returns(uint balance);
+    function getPassengersInsured(string  flight) external returns(address[] passengers);
+    function GetInsuredAmount(string  flight, address passenger) external returns(uint amount);
+    function SetInsuredAmount(string  flight, address passenger, uint amount) external;
 }
